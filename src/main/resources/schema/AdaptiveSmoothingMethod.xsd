@@ -4,7 +4,7 @@
         <xs:documentation>XML Schema Definition for Adaptive Smoothing Method (c) 2013 Arne Kesting</xs:documentation>
     </xs:annotation>
     <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
-    <!-- own definition -->
+  <!-- own definition -->
     <xs:simpleType name="nonNegativeDouble">
         <xs:restriction base="xs:double">
             <xs:minInclusive value="0" />
@@ -21,22 +21,16 @@
             <xs:maxInclusive value="1" />
         </xs:restriction>
     </xs:simpleType>
-    <xs:simpleType name="nonNegativeInteger">
-        <xs:restriction base="xs:integer">
-            <xs:minInclusive value="0" />
-        </xs:restriction>
-    </xs:simpleType>
-    <xs:simpleType name="positiveInteger">
-        <xs:restriction base="xs:integer">
-            <xs:minExclusive value="0" />
-        </xs:restriction>
-    </xs:simpleType>
     <!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+    
+    
     <xs:element name="AdaptiveSmoothingMethodProject">
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="Vehicles" />
-                <xs:element ref="Simulation" />
+                <xs:element ref="ParameterASM" />
+                <xs:element ref="VirtualGrid" minOccurs="0" maxOccurs="1" />
+                <xs:element ref="Output" />
+                <xs:element ref="Input" />
             </xs:sequence>
             <xs:attribute name="network_filename" type="xs:string" use="required" />
         </xs:complexType>
@@ -50,30 +44,25 @@
             <xs:attribute name="dx_smooth" type="nonNegativeDouble" use="required" />
             <xs:attribute name="dt_smooth" type="nonNegativeDouble" use="required" />
             <xs:attribute name="with_triangular" type="xs:boolean" default="false" />
-            <xs:attribute name="with_kerneltest" type="nonNegativeDouble" default="false" />
+            <xs:attribute name="with_kerneltest" type="xs:boolean" default="false" />
         </xs:complexType>
     </xs:element>
     <xs:element name="VirtualGrid">
         <xs:complexType>
-            <xs:attribute name="n_dx_cutoff" type="nonNegativeInteger" use="required" />
-            <xs:attribute name="n_dt_cutoff" type="nonNegativeInteger" use="required" />
-            <xs:attribute name="n_data_min" type="nonNegativeInteger" use="required" />
-        </xs:complexType>
-    </xs:element>
-    <xs:element name="Output">
-        <xs:complexType>
-            <xs:attribute name="dx" type="nonNegativeDouble" use="required" />
-            <xs:attribute name="dt" type="nonNegativeDouble" use="required" />
-            <xs:attribute name="x_start_km" type="nonNegativeDouble" use="required" />
-            <xs:attribute name="x_end_km" type="nonNegativeDouble" use="required" />
-            <xs:attribute name="t_start_h" type="nonNegativeDouble" use="required" />
-            <xs:attribute name="t_end_h" type="nonNegativeDouble" use="required" />
-            <xs:attribute name="filename" type="xs:string" use="required" />
-            <xs:attribute name="with_output" type="xs:boolean" default="true" />
+            <xs:attribute name="n_dx_cutoff" type="xs:nonNegativeInteger" use="required" />
+            <xs:attribute name="n_dt_cutoff" type="xs:nonNegativeInteger" use="required" />
+            <xs:attribute name="n_data_min" type="xs:nonNegativeInteger" use="required" />
         </xs:complexType>
     </xs:element>
     <xs:element name="Input">
         <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="Set" />
+                <xs:element ref="Format" />
+                <xs:element ref="Filter" minOccurs="0" maxOccurs="1" />
+                <xs:element ref="RandomErrors" minOccurs="0" maxOccurs="1" />
+                <xs:element ref="Datalist" />
+            </xs:sequence>
             <xs:attribute name="filename" type="xs:string" use="required" />
             <xs:attribute name="reverse_direction" type="xs:boolean" use="required" />
             <xs:attribute name="with_input" type="xs:boolean" default="false" />
@@ -86,12 +75,12 @@
     </xs:element>
     <xs:element name="Format">
         <xs:complexType>
-            <xs:attribute name="col_time" type="nonNegativeInteger" use="required" />
-            <xs:attribute name="col_position" type="nonNegativeInteger" use="required" />
-            <xs:attribute name="col_speed" type="nonNegativeInteger" use="required" />
-            <xs:attribute name="col_flow" type="nonNegativeInteger" use="required" />
-            <xs:attribute name="col_density" type="nonNegativeInteger" use="required" />
-            <xs:attribute name="col_occupancy" type="nonNegativeInteger" use="required" />
+            <xs:attribute name="col_time" type="xs:nonNegativeInteger" use="required" />
+            <xs:attribute name="col_position" type="xs:nonNegativeInteger" use="required" />
+            <xs:attribute name="col_speed" type="xs:nonNegativeInteger" use="required" />
+            <xs:attribute name="col_flow" type="xs:nonNegativeInteger" use="required" />
+            <xs:attribute name="col_density" type="xs:nonNegativeInteger" use="required" />
+            <xs:attribute name="col_occupancy" type="xs:nonNegativeInteger" use="required" />
             <xs:attribute name="factor2s" type="nonNegativeDouble" default="1" />
             <xs:attribute name="factor2m" type="nonNegativeDouble" default="1" />
             <xs:attribute name="factor2ms" type="nonNegativeDouble" default="1" />
@@ -124,6 +113,9 @@
     </xs:element>
     <xs:element name="Datalist">
         <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="Data" />
+            </xs:sequence>
             <xs:attribute name="time" type="nonNegativeDouble" use="required" />
             <xs:attribute name="speed" type="nonNegativeDouble" use="required" />
         </xs:complexType>
@@ -132,6 +124,29 @@
         <xs:complexType>
             <xs:attribute name="time" type="nonNegativeDouble" use="required" />
             <xs:attribute name="speed" type="nonNegativeDouble" use="required" />
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="Output">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="SpatioTemporalContour" minOccurs="0" maxOccurs="1" />
+                <xs:element ref="Traveltime" minOccurs="0" maxOccurs="1" />
+                <xs:element ref="Trajectories" minOccurs="0" maxOccurs="1" />
+                <xs:element ref="TimeSeriesOutput" minOccurs="0" maxOccurs="1" />
+                <xs:element ref="LocationSeriesOutput" minOccurs="0" maxOccurs="1" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="SpatioTemporalContour">
+        <xs:complexType>
+            <xs:attribute name="dx" type="nonNegativeDouble" use="required" />
+            <xs:attribute name="dt" type="nonNegativeDouble" use="required" />
+            <xs:attribute name="x_start_km" type="nonNegativeDouble" use="required" />
+            <xs:attribute name="x_end_km" type="nonNegativeDouble" use="required" />
+            <xs:attribute name="t_start_h" type="nonNegativeDouble" use="required" />
+            <xs:attribute name="t_end_h" type="nonNegativeDouble" use="required" />
+            <xs:attribute name="filename" type="xs:string" use="required" />
+            <xs:attribute name="with_output" type="xs:boolean" default="true" />
         </xs:complexType>
     </xs:element>
     <xs:element name="Traveltime">
