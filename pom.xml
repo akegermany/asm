@@ -158,7 +158,7 @@
                         </descriptorRefs>
                         <archive>
                             <manifest>
-                                <mainClass>de.tudresden.GeneralASM</mainClass>
+                                <mainClass>de.akesting.AdaptiveSmoothingMethodMain</mainClass>
                             </manifest>
                         </archive>
                     </configuration>

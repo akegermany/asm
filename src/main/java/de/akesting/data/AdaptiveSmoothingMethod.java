@@ -1,0 +1,235 @@
+package de.akesting.data;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.util.List;
+import java.util.Locale;
+
+import com.google.common.base.Preconditions;
+
+import de.akesting.autogen.ParameterASM;
+import de.akesting.output.OutputGrid;
+
+public class AdaptiveSmoothingMethod {
+
+    private static final double CRIT_NORM_THRESHOLD = 0.1;
+
+    private final ParameterASM parameter;
+
+    private double drivingDir = 1;
+
+    public AdaptiveSmoothingMethod(ParameterASM parameterASM) {
+        this.parameter = Preconditions.checkNotNull(parameterASM);
+        Preconditions.checkArgument(Math.abs(parameterASM.getVgFreeKmh()) > 0.000001,
+                "vgFree is near zero (devision not defined)");
+        Preconditions.checkArgument(Math.abs(parameterASM.getVgCongKmh()) > 0.000001,
+                "vgCong is near zero (devision not defined)");
+    }
+
+    private final double phi(double x, double t) {
+        return phiX(x) * phiT(t);
+    }
+
+    private final double phiX(double x) {
+        if (parameter.isWithTriangular()) {
+            return Math.max(0, 1 - Math.abs(x) / parameter.getDxSmooth());
+        }
+        return Math.exp(-Math.abs(x / parameter.getDxSmooth()));
+    }
+
+    private final double phiT(double t) {
+        if (parameter.isWithTriangular()) {
+            return Math.max(0, 1 - Math.abs(t) / parameter.getDtSmooth());
+        }
+        return Math.exp(-Math.abs(t / parameter.getDtSmooth()));
+    }
+
+    public void doSmoothing(DataView view, OutputGrid grid) {
+
+        view.generateGriddedData(parameter.getDxSmooth(), parameter.getDtSmooth());
+
+        final boolean withFlow = view.withFlow();
+        final boolean withDensity = view.withDensity();
+        final boolean withOccupancy = view.withOccupancy();
+
+        System.out.println("ASM ... doSmoothing ");
+
+        this.drivingDir = (view.isReverseDirection()) ? -1 : 1;
+
+        // profiling
+        long time1 = System.currentTimeMillis();
+
+        double minNormFree = 1e10; // init
+        double minNormCong = 1e10; // init
+
+        // main loop
+        for (int ix = 0; ix < grid.ndx(); ix++) {
+            double x0 = grid.position(ix);
+            for (int it = 0; it < grid.ndt(); it++) {
+                double t0 = grid.time(it);
+                // defaults
+                double normFree = 0;
+                double normCong = 0;
+                double vFree = 0;
+                double vCong = 0;
+                double flowFree = 0;
+                double flowCong = 0;
+                double rhoFree = 0;
+                double rhoCong = 0;
+                double occFree = 0;
+                double occCong = 0;
+
+                // loop over data points
+                List<Datapoint> griddedData = view.getData(x0, t0);
+                for (Datapoint dp : griddedData) {
+
+                    double x = dp.x();
+                    double t = dp.t();
+
+                    // System.out.printf("x0=%6.1fm, x=%6.1fm,  t0=%6.1fs, t=%6.1fs,  |x-x0|=%6.3fm, |t-t0|=%6.3fs%n", x0, x, t0, t,
+                    // Math.abs(x-x0), Math.abs(t-t0));
+                    double v = dp.v();
+
+                    double phiFree = dp.weight() * phi(x - x0, t - t0 - drivingDir * (x - x0) / vgFree());
+                    normFree += phiFree;
+                    vFree += phiFree * v;
+
+                    double phiCong = dp.weight() * phi(x - x0, t - t0 - drivingDir * (x - x0) / vgCong());
+                    normCong += phiCong;
+                    vCong += phiCong * v;
+
+                    if (withFlow) {
+                        double flow = dp.q();
+                        flowFree += phiFree * flow;
+                        flowCong += phiCong * flow;
+                    }
+
+                    if (withDensity) {
+                        double rho = dp.rho();
+                        rhoFree += phiFree * rho;
+                        rhoCong += phiCong * rho;
+                    }
+
+                    if (withOccupancy) {
+                        double occ = dp.occ();
+                        occFree += phiFree * occ;
+                        occCong += phiCong * occ;
+                    }
+                }
+
+                // make normalization:
+                grid.vFree.set(ix, it, (normFree == 0) ? 0 : vFree / normFree);
+                grid.vCong.set(ix, it, (normCong == 0) ? 0 : vCong / normCong);
+
+                if (withFlow) {
+                    grid.flowFree.set(ix, it, (normFree == 0) ? 0 : flowFree / normFree);
+                    grid.flowCong.set(ix, it, (normCong == 0) ? 0 : flowCong / normCong);
+                }
+
+                if (withDensity) {
+                    grid.rhoFree.set(ix, it, (normFree == 0) ? 0 : rhoFree / normFree);
+                    grid.rhoCong.set(ix, it, (normCong == 0) ? 0 : rhoCong / normCong);
+                }
+
+                if (withOccupancy) {
+                    grid.occFree.set(ix, it, (normFree == 0) ? 0 : occFree / normFree);
+                    grid.occCong.set(ix, it, (normCong == 0) ? 0 : occCong / normCong);
+                }
+
+                // testwise:
+                grid.normFree.set(ix, it, normFree);
+                grid.normCong.set(ix, it, normCong);
+
+                minNormFree = Math.min(normFree, minNormFree);
+                minNormCong = Math.min(normCong, minNormCong);
+
+            }
+        }
+
+        if (Math.min(minNormFree, minNormCong) < CRIT_NORM_THRESHOLD) {
+            System.out.printf("minNormFree=%6.5f, minNormCong=%6.5f %n", minNormFree, minNormCong);
+            System.out
+                    .printf("Warning: norm is quite low and smaller than threshold %3.2f. Please try a generous cut-off than the actual settings!%n",
+                            CRIT_NORM_THRESHOLD);
+        }
+
+        // (3) calculate weights w --> matrix
+        final double vc = parameter.getVcKmh() / 3.6;
+        final double dvc = parameter.getDvcKmh() / 3.6;
+        for (int ix = 0; ix < grid.ndx(); ix++) {
+            for (int it = 0; it < grid.ndt(); it++) {
+                double vCong = grid.vCong.get(ix, it);
+                double vFree = grid.vFree.get(ix, it);
+                double vDecide = Math.min(vCong, vFree);
+                if (grid.normCong.get(ix, it) == 0)
+                    vDecide = vFree;
+                double w = Math.max(0, Math.min(1, 0.5 * (1. + Math.tanh((vc - vDecide) / dvc))));
+                grid.weight.set(ix, it, w);
+            }
+        }
+
+        // (4) calc results (for speed only at this stage)
+        for (int ix = 0; ix < grid.ndx(); ix++) {
+            for (int it = 0; it < grid.ndt(); it++) {
+                double w = grid.weight.get(ix, it);
+                double result = w * grid.vCong.get(ix, it) + (1 - w) * grid.vFree.get(ix, it);
+                grid.vOut.set(ix, it, result);
+                if (withFlow) {
+                    grid.flowOut.set(ix, it, w * grid.flowCong.get(ix, it) + (1 - w) * grid.flowFree.get(ix, it));
+                }
+                if (withDensity) {
+                    grid.rhoOut.set(ix, it, w * grid.rhoCong.get(ix, it) + (1 - w) * grid.rhoFree.get(ix, it));
+                }
+                if (withOccupancy) {
+                    grid.occOut.set(ix, it, w * grid.occCong.get(ix, it) + (1 - w) * grid.occFree.get(ix, it));
+                }
+                // testweise:
+                double normResult = w * grid.normCong.get(ix, it) + (1 - w) * grid.normFree.get(ix, it);
+                grid.normFree.set(ix, it, normResult);
+            }
+        }
+        final double time2 = System.currentTimeMillis();
+        final double loopTime = (time2 - time1) / 1000.;
+        System.out.printf("**** Profiling: Time for whole loop : %10.3f seconds %n", loopTime);
+        System.out.printf("**** Profiling: Time for whole loop per 1000 data points : %10.3f seconds %n", 1000
+                * loopTime / view.nDatapoints());
+    }
+
+    private double vgFree() {
+        return parameter.getVgFreeKmh() / 3.6;
+    }
+
+    private double vgCong() {
+        return parameter.getVgCongKmh() / 3.6;
+    }
+
+    public void kernelTestOutput(String filename, OutputGrid grid) {
+        System.out.println(" kernelTestOutput to file=\"" + filename + "\"");
+
+        int drivingDir = 1;
+        double x = 0.5 * (grid.xEnd() - grid.xStart());
+        double t = 0.5 * (grid.tEnd() - grid.tStart());
+
+        try {
+            PrintWriter fstr = new PrintWriter(new BufferedWriter(new FileWriter(filename, false)));
+            // header information for data:
+            fstr.printf("# x[km]  t[h]  phi_free  phi_cong %n");
+            for (int ix = 0; ix < grid.ndx(); ix++) {
+                double x0 = grid.position(ix);
+                for (int it = 0; it < grid.ndt(); it++) {
+                    double t0 = grid.time(it);
+                    double phiFree = phi(x - x0, t - t0 - drivingDir * (x - x0) / vgFree());
+                    double phiCong = phi(x - x0, t - t0 - drivingDir * (x - x0) / vgCong());
+                    fstr.printf(Locale.US, "%e   %e   %e    %e%n", x0 / 1000, t0 / 3600, phiFree, phiCong);
+                }
+                fstr.printf("%n"); // block ends
+            }
+            fstr.close();
+        } catch (java.io.IOException e) {
+            System.err.println("Error  " + "Cannot open file " + filename);
+            e.printStackTrace();
+        }
+        System.out.println(" ASM Kerneltest finished...");
+    }
+}

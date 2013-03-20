@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AdaptiveSmoothingMethodProject>
+    <ParameterASM vg_free_kmh="70" vg_cong_kmh="-15" vc_kmh="55" dvc_kmh="10" dx_smooth="600" dt_smooth="30" />
+    <VirtualGrid n_dx_cutoff="7" n_dt_cutoff="7" />
+    <Input reverse_direction="false" with_output="true">
+        <Dataset weight="1">
+            <Format col_time="1" factor2s="60" col_speed="3" factor2ms="0.277777" />
+            <Datalist>
+                <Data filename="detData/A5S_2001_06_11.det01.dat" pos_km="465.15" />
+                <Data filename="detData/A5S_2001_06_11.det02.dat" pos_km="466.65" />
+                <Data filename="detData/A5S_2001_06_11.det03.dat" pos_km="468.35" />
+                <Data filename="detData/A5S_2001_06_11.det04.dat" pos_km="469.88" />
+                <Data filename="detData/A5S_2001_06_11.det05.dat" pos_km="470.45" />
+                <Data filename="detData/A5S_2001_06_11.det06.dat" pos_km="471.55" />
+                <Data filename="detData/A5S_2001_06_11.det07.dat" pos_km="473.00" />
+                <Data filename="detData/A5S_2001_06_11.det08.dat" pos_km="474.00" />
+                <Data filename="detData/A5S_2001_06_11.det09.dat" pos_km="475.00" />
+                <Data filename="detData/A5S_2001_06_11.det10.dat" pos_km="476.30" />
+                <Data filename="detData/A5S_2001_06_11.det11.dat" pos_km="477.40" />
+                <Data filename="detData/A5S_2001_06_11.det12.dat" pos_km="478.88" />
+                <Data filename="detData/A5S_2001_06_11.det13.dat" pos_km="479.95" />
+                <Data filename="detData/A5S_2001_06_11.det14.dat" pos_km="480.80" />
+                <Data filename="detData/A5S_2001_06_11.det15.dat" pos_km="481.30" />
+                <Data filename="detData/A5S_2001_06_11.det16.dat" pos_km="482.20" />
+                <Data filename="detData/A5S_2001_06_11.det17.dat" pos_km="483.00" />
+                <Data filename="detData/A5S_2001_06_11.det18.dat" pos_km="484.10" />
+                <Data filename="detData/A5S_2001_06_11.det19.dat" pos_km="485.00" />
+                <Data filename="detData/A5S_2001_06_11.det20.dat" pos_km="486.00" />
+                <Data filename="detData/A5S_2001_06_11.det21.dat" pos_km="486.90" />
+                <Data filename="detData/A5S_2001_06_11.det22.dat" pos_km="488.00" />
+                <Data filename="detData/A5S_2001_06_11.det23.dat" pos_km="488.50" />
+                <Data filename="detData/A5S_2001_06_11.det24.dat" pos_km="489.20" />
+                <Data filename="detData/A5S_2001_06_11.det25.dat" pos_km="489.50" />
+                <Data filename="detData/A5S_2001_06_11.det26.dat" pos_km="489.90" />
+                <Data filename="detData/A5S_2001_06_11.det27.dat" pos_km="490.30" />
+                <Data filename="detData/A5S_2001_06_11.det28.dat" pos_km="490.70" />
+                <Data filename="detData/A5S_2001_06_11.det29.dat" pos_km="491.30" />
+                <Data filename="detData/A5S_2001_06_11.det30.dat" pos_km="491.90" />
+                <Data filename="detData/A5S_2001_06_11.det31.dat" pos_km="492.50" />
+            </Datalist>
+        </Dataset>
+    </Input>
+    <Output> 
+    <SpatioTemporalContour dx="200" dt="60" t_start_h="5" t_end_h="22" />
+    </Output>
+</AdaptiveSmoothingMethodProject>
+
