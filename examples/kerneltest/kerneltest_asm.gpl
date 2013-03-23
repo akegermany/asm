@@ -1,0 +1,73 @@
+set style line 1 lt 0 lw 0.5 pt 7 ps 0.2
+set style line 2 lt 7 lw 2 pt 7 ps 0.2
+set style line 3 lt 1 lw 4 pt 5 ps 2 
+set style line 4 lt 7 lw 4 pt 5 ps 2 #gelb  (screen: tausche mit ls 1=orange-ocker auf screen)
+set style line 5 lt 0 lw 3 pt 5 ps 2 #gruen
+set style line 6 lt 5 lw 3 pt 5 ps 2 #blasstuerkisblau
+set style line 7 lt 3 lw 4 pt 7 ps 1 #blau
+set style line 8 lt 4 lw 3 pt 5 ps 2 #lila
+set style line 9 lt 9 lw 3 pt 5 ps 2
+set style line 10 lt 0 lw 2 pt 5 ps 2
+set style line 99 lt 7 lw 0
+
+
+set term post eps color solid  enhanced "Helvetica" 24
+#set term png
+set size square
+
+set palette color
+
+set palette  defined ( 0 "white", 10 "yellow", 30 "orange", 50 "red", 80 "blue", 100 "black") # "#dd00ff" )
+#set palette rgbformulae -25,-24,-32.
+#set palette model RGB
+#set cbrange [0:140]  #Minimum/Maximum der Palette
+#set palette  defined ( 0 "white",  20 "yellow", 50 "green", 70 "orange", 100 "red" )
+
+#set palette  defined ( 0 "red", 20 "orange", 30 "yellow", 50 "green", 80 "#87cefa", 130 "white") # "#dd00ff" )
+#set palette gamma 3.0 gray
+
+set ticslevel 0
+set nokey
+
+set zrange [0:]
+set view map
+
+
+#############################################################
+#set pm3d interpolate 4,4 map explicit
+#set pm3d interpolate 4,4 map explicit
+set parametric
+
+set pm3d map explicit
+set label "Weight factor" at screen 0.58,0.88
+set ylabel "Location [km]" offset -1.5,0
+set xlabel "Time [min]"
+
+set nokey
+#set xrange [-15:15]
+set xrange [-10:10]
+#set xtics 0.1
+
+#set yrange [-2:2]
+set yrange [-1.5:1.5]
+#set ytics 1
+
+set urange [-0.25:0.25]
+
+#set cbrange [*:*]   #Minimum/Maximum der Palette
+#show cbrange
+set cbtics 0.2 
+
+
+offset_x=3
+offset_t=30
+set out "kerneltest_engl.phi_free.eps"
+splot "kerneltest.asm_project.kernel_dat" u ($2*60-offset_t):($1-offset_x):3 w pm3d,\
+  u,70*u,1 w l ls 1
+
+
+set out "kerneltest_engl.phi_cong.eps"
+splot "kerneltest.asm_project.kernel_dat" u ($2*60.-offset_t):($1-offset_x):4 w pm3d,\
+  u,-15*u,1 w l ls 1
+
+
