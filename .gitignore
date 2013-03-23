@@ -5,3 +5,4 @@
 *.bak
 *.eps
 /target
+/not_public
