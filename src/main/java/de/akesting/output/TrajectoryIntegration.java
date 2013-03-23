@@ -11,52 +11,25 @@ import de.akesting.utils.FileUtils;
 
 public class TrajectoryIntegration {
 
-    private String basename;
-    private final String fileEnding = ".gfcd_";
-    private final String fileEndingFC = ".gfcd_indiv_";
-    private boolean isReverseDirection;
-    /*
-     * private double xStart;
-     * private double xEnd;
-     * private double tStart;
-     * private double tEnd;
-     */
-    private double dt;
-    private double dtOut;
+    private static final String fileEnding = ".gfcd_";
 
-    private OutputGrid grid;
+    private static final String fileEndingFC = ".gfcd_indiv_";
+
+    private final String basename;
+
+    private final OutputGrid grid;
 
     private final Trajectories config;
 
     public TrajectoryIntegration(String defaultBasename, Trajectories config, OutputGrid grid) {
         this.config = Preconditions.checkNotNull(config);
-        this.grid = grid;
-
-        /*
-         * xStart = grid.xStart();
-         * xEnd = grid.xEnd();
-         * tStart = grid.tStart();
-         * tEnd = grid.tEnd();
-         */
-
-        isReverseDirection = grid.isReverseDirection();
-        /*
-         * if(isReverseDirection){
-         * double d = xStart;
-         * xStart = xEnd;
-         * xEnd = d;
-         * }
-         */
-
-        this.basename = config.getBaseFilename();
-        dt = config.getDt();
-        dtOut = config.getDtOut();
-        int nTraj = config.getDn();
+        this.grid = Preconditions.checkNotNull(grid);
+        this.basename = config.isSetBaseFilename() ? config.getBaseFilename() : defaultBasename;
 
         FileUtils.deleteFileList(".", basename + fileEnding + "\\d*");
 
-        if (nTraj > 0) {
-            calcTrajectories(nTraj);
+        if (config.isSetDn()) {
+            calcTrajectories(config.getDn());
         }
 
         // further Floating cars with individual start pos/times:
@@ -64,7 +37,7 @@ public class TrajectoryIntegration {
             for (int i = 0; i < config.getFloatingCar().size(); i++) {
                 FloatingCar fc = config.getFloatingCar().get(i);
                 String filename = basename + fileEndingFC + String.valueOf(i + 1);
-                double xStart = (isReverseDirection) ? grid.xEndGrid() : grid.xStartGrid();
+                double xStart = grid.isReverseDirection() ? grid.xEndGrid() : grid.xStartGrid();
                 if (fc.isSetStartXKm()) {
                     xStart = 1000 * fc.getStartXKm();
                 }
@@ -75,34 +48,32 @@ public class TrajectoryIntegration {
     }
 
     private void calcTrajectories(int nTraj) {
-        double SMALL_VAL = 1; //
+        double SMALL_VAL = 1; 
         double t1 = grid.tStart();
         double t2 = grid.tEndGrid() - integrateTrajBackwards(grid.tEndGrid()) - SMALL_VAL;
         double deltaT = (int) ((t2 - t1) / nTraj);
-        System.out.printf(" Interval for trajectories: [%.2f, %.2f]h  --> deltaT=%.2fmin%n", t1 / 3600, t2 / 3600,
-                deltaT / 60);
+        System.out.printf(" Interval for trajectories: [%.2f, %.2f]h  --> deltaT=%.2fmin%n", t1 / 3600, t2 / 3600, deltaT / 60);
         for (int i = 0; i < nTraj; i++) {
             String filename = basename + fileEnding + String.valueOf(i + 1);
-            double xStart = (isReverseDirection) ? grid.xEndGrid() : grid.xStartGrid();
+            double xStart = grid.isReverseDirection() ? grid.xEndGrid() : grid.xStartGrid();
             writeTrajectory(filename, t1 + i * deltaT, xStart);
         }
     }
 
     private double integrateTrajBackwards(double t0) {
-        double x = (!isReverseDirection) ? grid.xEndGrid() : grid.xStartGrid();
+        double x = !grid.isReverseDirection() ? grid.xEndGrid() : grid.xStartGrid();
         double t = t0;
         double v;
         double dx = 0;
-        while (!passedSection(x, !isReverseDirection)) {
+        while (!passedSection(x, !grid.isReverseDirection())) {
             if (!grid.isDataAvailable(x, t)) {
                 System.err.println(" !!! Trajectories error ! Check for bug?");
-                System.err.println(" xEndGrid = " + grid.xEndGrid() / 1000. + " xStartGrid=" + grid.xStartGrid()
-                        / 1000.);
+                System.err.println(" xEndGrid = " + grid.xEndGrid() / 1000. + " xStartGrid=" + grid.xStartGrid() / 1000.);
             }
             v = grid.getSpeedResult(x, t);
-            dx = v * dt;
-            t -= dt;
-            x += (!isReverseDirection) ? -dx : dx;
+            dx = v * config.getDt();
+            t -= config.getDt();
+            x += !grid.isReverseDirection() ? -dx : dx;
         }
         return (t0 - t);
     }
@@ -122,16 +93,16 @@ public class TrajectoryIntegration {
         double x = xStart; // (isReverseDirection)? grid.xEndGrid() : grid.xStartGrid();
         double v;
         double dx = 0;
-        while (!passedSection(x, isReverseDirection)) {
+        while (!passedSection(x, grid.isReverseDirection())) {
             if (!grid.isDataAvailable(x, t))
                 break;
             v = grid.getSpeedResult(x, t);
             // / v = effectiveSpeed(v); // !!!! TODO !!! Noch keine Parameter, nicht quantiativ getestet !!!
             fstr.printf(Locale.US, " %f  %f  %f  %s ", t, x, v, FormatUtils.getFormatedTime(t));
             // integration
-            dx = v * dt;
-            x += (isReverseDirection) ? -dx : dx;
-            t += dtOut;
+            dx = v * config.getDt();
+            x += grid.isReverseDirection() ? -dx : dx;
+            t += config.getDtOut();
             fstr.printf("%n");
         }
         fstr.close();

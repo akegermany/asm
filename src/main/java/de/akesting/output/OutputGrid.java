@@ -368,4 +368,20 @@ public final class OutputGrid {
     public boolean withFileOutput() {
         return withFileOutput;
     }
+
+    public double xStartKm() {
+        return xStart/1000.;
+    }
+
+    public double xEndKm() {
+        return xEnd/1000.;
+    }
+
+    public double tStartH() {
+        return tStart/3600.;
+    }
+
+    public double tEndH() {
+        return tEnd/3600.;
+    }
 }
