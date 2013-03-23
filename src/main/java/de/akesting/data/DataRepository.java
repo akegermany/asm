@@ -12,6 +12,7 @@ import org.jdom.Element;
 import de.akesting.autogen.Data;
 import de.akesting.autogen.Dataset;
 import de.akesting.autogen.Input;
+import de.akesting.autogen.SingleData;
 import de.akesting.utils.FileUtils;
 import de.akesting.utils.FormatUtils;
 
@@ -231,10 +232,9 @@ public class DataRepository {
 
         DataFilter filter = dataset.isSetFilter() ? new DataFilter(dataset.getFilter()) : null;
         
-        if (dataset.getDatalist().isSetDataSingle()) {
-            // TODO
-            System.err.println("single data points not yet implemented...");
-            System.exit(-1);
+        for (SingleData singleData : dataset.getDatalist().getSingleData()) {
+            //System.err.println("single data points not yet implemented...");
+            data.add(new Datapoint(singleData));
         }
         
         for (Data dataEntry : dataset.getDatalist().getData()) {

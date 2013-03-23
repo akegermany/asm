@@ -1,5 +1,7 @@
 package de.akesting.data;
 
+import de.akesting.autogen.SingleData;
+
 public class Datapoint {
     private double x = Double.NaN;
     private double t = Double.NaN;
@@ -21,6 +23,21 @@ public class Datapoint {
         this.rho = dp.rho;
         this.occ = dp.occ;
         this.weight = dp.weight;
+    }
+
+    public Datapoint(SingleData singleData) {
+        this.x = singleData.getPosKm()/1000.;
+        this.t = singleData.getTimeH() /3600.;
+        this.v = singleData.getSpeedKmh() /3.6;
+        if(singleData.isSetDensityInvkm()){
+            this.rho = singleData.getDensityInvkm()/1000.;
+        }
+        if(singleData.isSetFlowInvh()){
+            this.q = singleData.getFlowInvh()/3600;
+        }
+        if(singleData.isSetOccupancy()){
+            this.occ = singleData.getOccupancy();
+        }
     }
 
     public double x() {

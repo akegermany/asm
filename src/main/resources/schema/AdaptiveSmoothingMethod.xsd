@@ -126,11 +126,10 @@
     </xs:element>
     <xs:element name="Datalist">
         <xs:complexType>
-            <xs:choice>
-                <xs:element ref="Data" minOccurs="1" maxOccurs="unbounded" />
-                <!-- DataSingle not working -->
-                <xs:element ref="DataSingle" minOccurs="1" maxOccurs="unbounded" />
-            </xs:choice>
+            <xs:sequence>
+                <xs:element ref="Data" minOccurs="0" maxOccurs="unbounded" />
+                <xs:element ref="SingleData" minOccurs="0" maxOccurs="unbounded" />
+            </xs:sequence>
             <xs:attribute name="filename" type="xs:string" />
             <xs:attribute name="basename" type="xs:string" />
             <xs:attribute name="filename_completion" type="xs:string" />
@@ -145,8 +144,9 @@
             <xs:attribute name="pos_km" type="nonNegativeDouble" use="required" />
         </xs:complexType>
     </xs:element>
-    <xs:element name="DataSingle">
+    <xs:element name="SingleData">
         <xs:complexType>
+			<xs:attribute name="pos_km" type="nonNegativeDouble" use="required" />
             <xs:attribute name="time_h" type="nonNegativeDouble" use="required" />
             <xs:attribute name="speed_kmh" type="nonNegativeDouble" use="required" />
             <xs:attribute name="flow_invh" type="nonNegativeDouble" default="0" />
