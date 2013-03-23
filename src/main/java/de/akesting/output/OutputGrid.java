@@ -98,7 +98,6 @@ public final class OutputGrid {
 
         if (xStart > xEnd || tStart > tEnd) {
             System.err.println(" OutputGrid:: check min/max values... Exit(-1)");
-            ;
             System.exit(-1);
         }
 

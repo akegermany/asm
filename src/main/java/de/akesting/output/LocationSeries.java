@@ -13,14 +13,13 @@ import de.akesting.autogen.TimeSnapshot;
 public class LocationSeries {
 
     private String basename;
+
     private double dx;
 
     public LocationSeries(String basenameOutput, LocationSeriesOutput locationSeriesOutput, OutputGrid grid) {
         Preconditions.checkNotNull(locationSeriesOutput);
         this.basename = basenameOutput;
-
         dx = locationSeriesOutput.getDx();
-
         for (TimeSnapshot element : locationSeriesOutput.getTimeSnapshot()) {
             writeSnapshotLoationSeries(element.getTimeH() * 3600, grid);
         }
@@ -31,10 +30,9 @@ public class LocationSeries {
     }
 
     private void writeSnapshotLoationSeries(double time, OutputGrid grid) {
-        String filename = outputFilename((int) (time / 60.)); // t in minutes
+        String filename = outputFilename((int) (time / 60.)); 
         try {
             PrintWriter fstr = new PrintWriter(new BufferedWriter(new FileWriter(filename, false)));
-            // header information for data:
             fstr.printf("# Spatiotemporal intervals for calculating the traveltime: %n");
             fstr.printf(Locale.US, "# x[km]  vASM[km/h]  ");
             if (grid.withFlow()) {
@@ -48,7 +46,7 @@ public class LocationSeries {
             }
             fstr.printf(Locale.US, "%n");
             double x = grid.xStart();
-            while (x < grid.xEnd()) {
+            while (x < grid.xEnd()-dx) {
                 double vASM = grid.getSpeedResult(x, time);
                 fstr.printf(Locale.US, "%f  %f  ", x / 1000., vASM * 3.6);
                 if (grid.withFlow()) {

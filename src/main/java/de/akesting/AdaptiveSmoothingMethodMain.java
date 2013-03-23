@@ -11,7 +11,6 @@ import de.akesting.output.LocationSeries;
 import de.akesting.output.OutputGrid;
 import de.akesting.output.TimeSeries;
 import de.akesting.output.TrajectoryIntegration;
-import de.akesting.output.Traveltime;
 import de.akesting.xml.XmlInputLoader;
 
 public class AdaptiveSmoothingMethodMain {
@@ -47,11 +46,6 @@ public class AdaptiveSmoothingMethodMain {
         if (outputGrid.withFileOutput())
             outputGrid.write(dataRep);
 
-        if (inputData.getOutput().isSetTraveltime()) {
-            Traveltime tt = new Traveltime(cmdLine.defaultTraveltimeFilename(), inputData.getOutput().getTraveltime(),
-                    outputGrid);
-        }
-
         if (inputData.getOutput().isSetTrajectories()) {
             TrajectoryIntegration traj = new TrajectoryIntegration(cmdLine.defaultOutFilename(), inputData.getOutput()
                     .getTrajectories(), outputGrid);
@@ -67,6 +61,8 @@ public class AdaptiveSmoothingMethodMain {
             LocationSeries lsOut = new LocationSeries(cmdLine.defaultOutFilename(), inputData.getOutput()
                     .getLocationSeriesOutput(), outputGrid);
         }
+        
+        System.out.println("done.");
 
     }
 

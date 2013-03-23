@@ -41,7 +41,7 @@ public class TrajectoryIntegration {
                 if (fc.isSetStartXKm()) {
                     xStart = 1000 * fc.getStartXKm();
                 }
-                double tStart = fc.getStartT();
+                double tStart = fc.getStartTH()*3600;
                 writeTrajectory(filename, tStart, xStart);
             }
         }

@@ -159,7 +159,6 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element ref="SpatioTemporalContour" minOccurs="0" maxOccurs="1" />
-                <xs:element ref="Traveltime" minOccurs="0" maxOccurs="1" />
                 <xs:element ref="Trajectories" minOccurs="0" maxOccurs="1" />
                 <xs:element ref="TimeSeriesOutput" minOccurs="0" maxOccurs="1" />
                 <xs:element ref="LocationSeriesOutput" minOccurs="0" maxOccurs="1" />
@@ -178,14 +177,6 @@
             <xs:attribute name="with_output" type="xs:boolean" default="true" />
         </xs:complexType>
     </xs:element>
-    <xs:element name="Traveltime">
-        <xs:complexType>
-            <xs:attribute name="filename" type="xs:string" default="" />
-            <xs:attribute name="dt" type="nonNegativeDouble" default="1" />
-            <xs:attribute name="dt_out" type="nonNegativeDouble" default="10" />
-            <xs:attribute name="speed_reference_kmh" type="nonNegativeDouble" default="130" />
-        </xs:complexType>
-    </xs:element>
     <xs:element name="Trajectories">
         <xs:complexType>
         <xs:sequence>
@@ -202,7 +193,7 @@
      <xs:element name="FloatingCar">
         <xs:complexType>
             <xs:attribute name="start_x_km" type="nonNegativeDouble" use="required" />
-            <xs:attribute name="start_t" type="nonNegativeDouble" use="required" />
+            <xs:attribute name="start_t_h" type="nonNegativeDouble" use="required" />
         </xs:complexType>
     </xs:element>
     

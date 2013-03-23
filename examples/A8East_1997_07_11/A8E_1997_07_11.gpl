@@ -1,0 +1,79 @@
+set style line 1 lt 7 lw 1 pt 7 ps 0.2
+set style line 99 lt 7 lw 0 pt 7 ps 0.5
+
+# Contourlinien
+set isosamples 20
+set cntrparam bspline
+set cntrparam levels 20
+unset clabel
+
+unset pm3d               
+set pm3d                 
+#set pm3d map 
+
+unset contour            
+set contour base          # Aktiviert Kontourlinien auf xy-Ebene
+
+
+###########
+
+#set surface   
+unset surface  
+
+set palette defined (0 "#cc0055", 10 "red", 25 "orange", 37 "yellow", 50 "green", 70 "blue", 100 "#dd00ff" ) 
+
+#set cbrange [0:120]
+set view map
+
+set encoding iso_8859_1
+set term post eps color solid "Helvetica" 38
+
+set size 1.5,2
+
+set xlabel "Time" 
+set xdata time
+set timefmt "%H:%M:%S"
+set format x "%H:%M"
+set xrange ["16:30":"20:00"]
+set xtics "2:00"
+
+set ylabel "x [km]" offset 0,-0.4 rotate by 90
+set ytics 5
+set yrange [30:45] 
+
+set zrange [:]
+set colorbox
+set label 1 "V[km/h]" at screen 1.28,1.72
+
+#################################
+# Actual plotting
+#################################
+unset key
+unset grid
+
+set title "A8 Ost, 11.07.1997"
+set out "./A8E_1997_07_11.GASM.v2d.contour.eps"
+splot  "A8E_1997_07_11.GASM" u 7:($1/1000.):($3*3.6) w l ls 99
+
+
+set cbrange[0:]
+
+set label 1 "Rho[1/km]" at screen 1.28,1.72
+set out "./A8E_1997_07_11.GASM.rho2d.contour.eps"
+splot  "A8E_1997_07_11.GASM" u 7:($1/1000.):($10*1000) w l ls 99
+
+set label 1 "Flow[1/h]" at screen 1.28,1.72
+set out "./A8E_1997_07_11.GASM.q2d.contour.eps"
+splot  "A8E_1997_07_11.GASM" u 7:($1/1000.):($9*3600) w l ls 99
+
+
+set label 1 "Norm" at screen 1.28,1.72
+
+set out "./A8E_1997_07_11.GASM.norm2d.contour.eps"
+splot  "A8E_1997_07_11.GASM" u 7:($1/1000.):($8) w pm3d ## ohne contour !
+
+set label 1 "Weight" at screen 1.28,1.72
+set cbrange[0:1]
+set out "./A8E_1997_07_11.GASM.weight2d.contour.eps"
+splot  "A8E_1997_07_11.GASM" u 7:($1/1000.):($6) w pm3d ## ohne contour !
+
