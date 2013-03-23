@@ -30,7 +30,7 @@ public class LocationSeries {
     }
 
     private void writeSnapshotLoationSeries(double time, OutputGrid grid) {
-        String filename = outputFilename((int) (time / 60.)); 
+        String filename = outputFilename((int) (time / 60.));
         try {
             PrintWriter fstr = new PrintWriter(new BufferedWriter(new FileWriter(filename, false)));
             fstr.printf("# Spatiotemporal intervals for calculating the traveltime: %n");
@@ -46,7 +46,7 @@ public class LocationSeries {
             }
             fstr.printf(Locale.US, "%n");
             double x = grid.xStart();
-            while (x < grid.xEnd()-dx) {
+            while (x < grid.xEnd() - dx) {
                 double vASM = grid.getSpeedResult(x, time);
                 fstr.printf(Locale.US, "%f  %f  ", x / 1000., vASM * 3.6);
                 if (grid.withFlow()) {

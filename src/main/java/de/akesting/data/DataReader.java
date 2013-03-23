@@ -26,7 +26,6 @@ public class DataReader {
     String absPath;
     String alternativePath = "";
 
-
     public DataReader(Data dataEntryConfig, Format format, double weight, String absPath) {
         this.data = Preconditions.checkNotNull(dataEntryConfig);
         this.dataFormat = Preconditions.checkNotNull(format);

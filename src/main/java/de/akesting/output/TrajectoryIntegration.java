@@ -41,18 +41,19 @@ public class TrajectoryIntegration {
                 if (fc.isSetStartXKm()) {
                     xStart = 1000 * fc.getStartXKm();
                 }
-                double tStart = fc.getStartTH()*3600;
+                double tStart = fc.getStartTH() * 3600;
                 writeTrajectory(filename, tStart, xStart);
             }
         }
     }
 
     private void calcTrajectories(int nTraj) {
-        double SMALL_VAL = 1; 
+        double SMALL_VAL = 1;
         double t1 = grid.tStart();
         double t2 = grid.tEndGrid() - integrateTrajBackwards(grid.tEndGrid()) - SMALL_VAL;
         double deltaT = (int) ((t2 - t1) / nTraj);
-        System.out.printf(" Interval for trajectories: [%.2f, %.2f]h  --> deltaT=%.2fmin%n", t1 / 3600, t2 / 3600, deltaT / 60);
+        System.out.printf(" Interval for trajectories: [%.2f, %.2f]h  --> deltaT=%.2fmin%n", t1 / 3600, t2 / 3600,
+                deltaT / 60);
         for (int i = 0; i < nTraj; i++) {
             String filename = basename + fileEnding + String.valueOf(i + 1);
             double xStart = grid.isReverseDirection() ? grid.xEndGrid() : grid.xStartGrid();
@@ -68,7 +69,8 @@ public class TrajectoryIntegration {
         while (!passedSection(x, !grid.isReverseDirection())) {
             if (!grid.isDataAvailable(x, t)) {
                 System.err.println(" !!! Trajectories error ! Check for bug?");
-                System.err.println(" xEndGrid = " + grid.xEndGrid() / 1000. + " xStartGrid=" + grid.xStartGrid() / 1000.);
+                System.err.println(" xEndGrid = " + grid.xEndGrid() / 1000. + " xStartGrid=" + grid.xStartGrid()
+                        / 1000.);
             }
             v = grid.getSpeedResult(x, t);
             dx = v * config.getDt();

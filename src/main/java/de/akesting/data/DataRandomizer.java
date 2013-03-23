@@ -16,7 +16,7 @@ public class DataRandomizer {
     double speedErrorRel = 0;
 
     private final RandomErrors randomErrors;
-    
+
     public DataRandomizer(RandomErrors randomErrors) {
         this.randomErrors = Preconditions.checkNotNull(randomErrors);
         rand = (SEED > 0) ? new Random(SEED) : new Random();

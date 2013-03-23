@@ -231,12 +231,12 @@ public class DataRepository {
                 : null;
 
         DataFilter filter = dataset.isSetFilter() ? new DataFilter(dataset.getFilter()) : null;
-        
+
         for (SingleData singleData : dataset.getDatalist().getSingleData()) {
-            //System.err.println("single data points not yet implemented...");
+            // System.err.println("single data points not yet implemented...");
             data.add(new Datapoint(singleData));
         }
-        
+
         for (Data dataEntry : dataset.getDatalist().getData()) {
             DataReader dataReader = new DataReader(dataEntry, dataset.getFormat(), weight, absolutePath);
 

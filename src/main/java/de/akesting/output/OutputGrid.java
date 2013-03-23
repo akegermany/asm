@@ -369,18 +369,18 @@ public final class OutputGrid {
     }
 
     public double xStartKm() {
-        return xStart/1000.;
+        return xStart / 1000.;
     }
 
     public double xEndKm() {
-        return xEnd/1000.;
+        return xEnd / 1000.;
     }
 
     public double tStartH() {
-        return tStart/3600.;
+        return tStart / 3600.;
     }
 
     public double tEndH() {
-        return tEnd/3600.;
+        return tEnd / 3600.;
     }
 }

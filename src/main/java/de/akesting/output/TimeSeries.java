@@ -15,7 +15,6 @@ public class TimeSeries {
     private String basename;
     private double dt;
 
-
     public TimeSeries(String basenameOutput, TimeSeriesOutput timeSeriesOutput, OutputGrid grid) {
         Preconditions.checkNotNull(timeSeriesOutput);
 

@@ -61,7 +61,7 @@ public class AdaptiveSmoothingMethodMain {
             LocationSeries lsOut = new LocationSeries(cmdLine.defaultOutFilename(), inputData.getOutput()
                     .getLocationSeriesOutput(), outputGrid);
         }
-        
+
         System.out.println("done.");
 
     }

@@ -26,16 +26,16 @@ public class Datapoint {
     }
 
     public Datapoint(SingleData singleData) {
-        this.x = singleData.getPosKm()/1000.;
-        this.t = singleData.getTimeH() /3600.;
-        this.v = singleData.getSpeedKmh() /3.6;
-        if(singleData.isSetDensityInvkm()){
-            this.rho = singleData.getDensityInvkm()/1000.;
+        this.x = singleData.getPosKm() / 1000.;
+        this.t = singleData.getTimeH() / 3600.;
+        this.v = singleData.getSpeedKmh() / 3.6;
+        if (singleData.isSetDensityInvkm()) {
+            this.rho = singleData.getDensityInvkm() / 1000.;
         }
-        if(singleData.isSetFlowInvh()){
-            this.q = singleData.getFlowInvh()/3600;
+        if (singleData.isSetFlowInvh()) {
+            this.q = singleData.getFlowInvh() / 3600;
         }
-        if(singleData.isSetOccupancy()){
+        if (singleData.isSetOccupancy()) {
             this.occ = singleData.getOccupancy();
         }
     }
