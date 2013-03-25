@@ -6,14 +6,11 @@ import org.slf4j.LoggerFactory;
 public final class Tables {
 
     /** The Constant logger. */
-    private final static Logger Logger = LoggerFactory.getLogger(FileUtils.class);
+    private final static Logger Logger = LoggerFactory.getLogger(Tables.class);
 
     private static final double TINY_VALUE = 1.e-10;
 
-    // / Empty Public constructor
-
-    public Tables() {
-        ;
+    private Tables() {
     }
 
     /**

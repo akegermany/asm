@@ -2,7 +2,7 @@ package de.akesting.data;
 
 import de.akesting.autogen.SingleData;
 
-public class Datapoint {
+class Datapoint {
     private double x = Double.NaN;
     private double t = Double.NaN;
     private double v = Double.NaN;
@@ -25,7 +25,7 @@ public class Datapoint {
         this.weight = dp.weight;
     }
 
-    public Datapoint(SingleData singleData) {
+    Datapoint(SingleData singleData) {
         this.x = singleData.getPosKm() / 1000.;
         this.t = singleData.getTimeH() / 3600.;
         this.v = singleData.getSpeedKmh() / 3.6;

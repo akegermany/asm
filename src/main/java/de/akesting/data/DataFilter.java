@@ -6,7 +6,7 @@ import com.google.common.base.Preconditions;
 
 import de.akesting.autogen.Filter;
 
-public class DataFilter {
+class DataFilter {
 
     private final static long SEED = 42; // <0: not defined seed
 
@@ -14,7 +14,7 @@ public class DataFilter {
 
     private final Filter filterConfiguration;
 
-    public DataFilter(Filter filter) {
+    DataFilter(Filter filter) {
         this.filterConfiguration = Preconditions.checkNotNull(filter);
         rand = (SEED > 0) ? new Random(SEED) : new Random();
     }

@@ -2,12 +2,12 @@ package de.akesting.output;
 
 import java.util.Formatter;
 
-public class FormatUtils {
+final class FormatUtils {
 
     private FormatUtils() {
     }
 
-    public static String getFormatedTime(double timeInSeconds) {
+    static String getFormatedTime(double timeInSeconds) {
         int intTime = (int) timeInSeconds;
         int hours = intTime / 3600;
         intTime = intTime % 3600;

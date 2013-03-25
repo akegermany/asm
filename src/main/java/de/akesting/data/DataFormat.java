@@ -4,14 +4,14 @@ import com.google.common.base.Preconditions;
 
 import de.akesting.autogen.Format;
 
-public class DataFormat {
+class DataFormat {
 
     private final Format formatConfiguration;
 
     private double timeOffset = 0;
     private double posOffset = 0;
 
-    public DataFormat(Format formatConfig) {
+    DataFormat(Format formatConfig) {
         this.formatConfiguration = Preconditions.checkNotNull(formatConfig);
         if (!formatConfig.isSetColPosition()) {
             System.out.println(" ... position not provided by data file ... read position from xml ...");

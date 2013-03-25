@@ -16,7 +16,7 @@ import de.akesting.autogen.SingleData;
 import de.akesting.utils.FileUtils;
 import de.akesting.utils.FormatUtils;
 
-public class DataRepository {
+public final class DataRepository {
 
     private double xMin;
     private double xMax;

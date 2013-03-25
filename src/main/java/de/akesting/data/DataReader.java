@@ -11,9 +11,8 @@ import de.akesting.autogen.Data;
 import de.akesting.autogen.Format;
 import de.akesting.utils.FileUtils;
 
-public class DataReader {
+class DataReader {
 
-    private final Data data;
     private final Format dataFormat;
 
     private BufferedReader fileReader = null;
@@ -26,8 +25,8 @@ public class DataReader {
     String absPath;
     String alternativePath = "";
 
-    public DataReader(Data dataEntryConfig, Format format, double weight, String absPath) {
-        this.data = Preconditions.checkNotNull(dataEntryConfig);
+    DataReader(Data dataEntryConfig, Format format, double weight, String absPath) {
+        Preconditions.checkNotNull(dataEntryConfig);
         this.dataFormat = Preconditions.checkNotNull(format);
         this.absPath = Preconditions.checkNotNull(absPath);
         this.weight = weight;

@@ -9,17 +9,17 @@ import de.akesting.autogen.VirtualGrid;
 
 public final class DataView {
 
-    private int nx = 1; // default
-    private int nt = 1; // default
+    private int nx = 1;
+    private int nt = 1;
 
     private double dx;
     private double dt;
 
-    DataRepository dataRep;
+    private DataRepository dataRep;
 
     private final VirtualGrid virtualGridConfig;
 
-    ArrayList<Datapoint>[][] griddedData; // matrix of list [x][t]
+    private ArrayList<Datapoint>[][] griddedData; // matrix of list [x][t]
 
     public boolean withFlow() {
         return dataRep.withFlow();
@@ -35,27 +35,7 @@ public final class DataView {
 
     public DataView(VirtualGrid virtualGrid, DataRepository dataRep) {
         virtualGridConfig = Preconditions.checkNotNull(virtualGrid);
-
-        this.dataRep = dataRep;
-
-        // if (withVirtualGrid()) {
-        // nDxCutoff = XmlUtils.getDoubleValue(virtualGrid,
-        // XmlElements.VirtualGrid_n_dx_cutoff);
-        // nDtCutoff = XmlUtils.getDoubleValue(virtualGrid,
-        // XmlElements.VirtualGrid_n_dt_cutoff);
-        // System.out.printf(Locale.US,"DataView: virtual Grid n_dx_cutoff= %.1f, n_dt_cufoff=%.1f %n",
-        // nDxCutoff, nDtCutoff);
-        // if(nDxCutoff <=0 || nDtCutoff<=0 ){
-        // System.out.printf("Error : please provide positive integers for numerical cutoff grid!!");
-        // System.exit(0);
-        // }
-        // if (XmlUtils.containsAttribute(virtualGrid,
-        // XmlElements.VirtualGrid_nDataMin)) {
-        // nDataMin = XmlUtils.getIntValue(virtualGrid,
-        // XmlElements.VirtualGrid_nDataMin);
-        // System.out.printf("DataView: virtual grid minimum data size nDataMin=%d %n", nDataMin);
-        // }
-        // }
+        this.dataRep = Preconditions.checkNotNull(dataRep);
     }
 
     public boolean withVirtualGrid() {
@@ -64,9 +44,8 @@ public final class DataView {
 
     public List<Datapoint> getData(double x0, double t0) {
         if (!withVirtualGrid() || (nx == 1 && nt == 1)) {
-            return dataRep.data(); // ohne grid einteilung !!
+            return dataRep.data();
         }
-        // mit virtual grid:
         int indexX0 = indexX(x0);
         int indexT0 = indexT(t0);
 
@@ -91,7 +70,6 @@ public final class DataView {
             if (list.size() == dataRep.data().size())
                 break;
         } while (list.size() < virtualGridConfig.getNDataMin());
-        // wenn zu wenig Punkte drin sind, probiere groesseres Gitter:
         // System.out.printf("(x0,t0)=(%.2f, %.2f) --> (ix,it)=(%d,%d) --> list.size=%d, maxSize=%d%n", x0, t0, ix, it, list.size(),
         // dataRep.data().size());
         return list;
@@ -113,7 +91,7 @@ public final class DataView {
 
     public void generateGriddedData(double dxSmooth, double dtSmooth) {
         if (!withVirtualGrid()) {
-            nx = nt = 1; // defaults, kein grid
+            nx = nt = 1;
             System.out.printf("######### no virtual grid ########%n");
             return;
         }
@@ -133,7 +111,6 @@ public final class DataView {
             }
         }
 
-        // sort in;
         for (Datapoint dp : dataRep.data()) {
             griddedData[indexX(dp.x())][indexT(dp.t())].add(dp);
         }

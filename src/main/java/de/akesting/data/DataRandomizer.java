@@ -6,7 +6,7 @@ import com.google.common.base.Preconditions;
 
 import de.akesting.autogen.RandomErrors;
 
-public class DataRandomizer {
+class DataRandomizer {
 
     private final static long SEED = 42;
 
@@ -17,12 +17,12 @@ public class DataRandomizer {
 
     private final RandomErrors randomErrors;
 
-    public DataRandomizer(RandomErrors randomErrors) {
+    DataRandomizer(RandomErrors randomErrors) {
         this.randomErrors = Preconditions.checkNotNull(randomErrors);
         rand = (SEED > 0) ? new Random(SEED) : new Random();
     }
 
-    public final Datapoint randomize(Datapoint dp) {
+    final Datapoint randomize(Datapoint dp) {
         if (rand == null) {
             return dp;
         }

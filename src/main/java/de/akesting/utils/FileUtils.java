@@ -40,10 +40,6 @@ public final class FileUtils {
         return null;
     }
 
-    public static String currentDirectory() {
-        return System.getProperty("user.dir");
-    }
-
     public static String homeDirectory() {
         String home = System.getProperty("user.home");
         return home;
@@ -58,29 +54,12 @@ public final class FileUtils {
         return (false);
     }
 
-    // check if directory exists (in fact the same as file)
     public static boolean dirExists(String path, String msg) {
         File file = new File(path);
         if (file.exists() && file.isDirectory()) {
             return (true);
         }
         return (false);
-    }
-
-    // create directory
-    public static void createDir(String path, String msg) {
-        File file = new File(path);
-        if (dirExists(path, msg)) {
-            return;
-        }
-        System.out.println(msg + ": create directory \"" + path + "\"");
-        boolean success = file.mkdir();
-        if (!success) {
-            System.err.println("createDir: cannot create directory " + path);
-            System.err.println("msg from calling class" + msg);
-            System.err.println("exit now!!!");
-            System.exit(-5);
-        }
     }
 
     // delete existing file
@@ -115,8 +94,9 @@ public final class FileUtils {
     }
 
     public static void deleteDir(String dirName) {
-        if (!dirExists(dirName, "FileUtils...deleteDir..."))
+        if (!dirExists(dirName, "FileUtils...deleteDir...")) {
             return;
+        }
         File dir = new File(dirName);
         boolean success = deleteDir(dir);
         if (!success) {
@@ -126,7 +106,6 @@ public final class FileUtils {
         }
     }
 
-    // returns a String[] of files found in the path applying to the filter string
     public static String[] getFileList(String path, String regex) {
         File dir = new File(path);
 

@@ -4,8 +4,6 @@ import java.util.Formatter;
 
 public final class FormatUtils {
 
-    private static Formatter formatter;
-
     private FormatUtils() {
         // private constructor
     }
@@ -18,7 +16,7 @@ public final class FormatUtils {
         int min = intTime / 60;
         intTime = intTime % 60;
         StringBuilder stringBuilder = new StringBuilder();
-        formatter = new Formatter(stringBuilder);
+        Formatter formatter = new Formatter(stringBuilder);
         formatter.format("%02d:%02d:%02d", hours, min, intTime);
         return stringBuilder.toString();
     }

@@ -13,7 +13,6 @@ import de.akesting.autogen.AdaptiveSmoothingMethodProject;
 
 public final class XmlInputLoader {
 
-    /** The Constant logger. */
     private final static Logger LOG = LoggerFactory.getLogger(XmlInputLoader.class);
 
     private static final Class<?> SCENARIO_FACTORY = AdaptiveSmoothingMethodProject.class;
@@ -34,7 +33,7 @@ public final class XmlInputLoader {
     public static AdaptiveSmoothingMethodProject getInputData(File xmlFile) {
         AdaptiveSmoothingMethodProject inputData = null;
         try {
-            System.out.println("try to open file = " + xmlFile.getName());
+            LOG.info("try to open file = {}", xmlFile.getName());
             inputData = XmlInputLoader.validateAndLoadScenarioInput(xmlFile);
         } catch (JAXBException e) {
             throw new IllegalArgumentException(e.toString());
@@ -42,7 +41,7 @@ public final class XmlInputLoader {
             throw new IllegalArgumentException(e.toString());
         }
         if (inputData == null) {
-            System.out.println("input not valid. exit.");
+            LOG.error("input not valid. exit.");
             System.exit(-1);
         }
         return inputData;

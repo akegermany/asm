@@ -17,11 +17,8 @@ public class TimeSeries {
 
     public TimeSeries(String basenameOutput, TimeSeriesOutput timeSeriesOutput, OutputGrid grid) {
         Preconditions.checkNotNull(timeSeriesOutput);
-
         this.basename = basenameOutput;
-
         dt = timeSeriesOutput.getDt();
-
         for (CrossSection crossSection : timeSeriesOutput.getCrossSection()) {
             writeCrosssectionTimeseries(crossSection.getPositionKm() * 1000, grid);
         }

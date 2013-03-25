@@ -22,7 +22,6 @@ public final class OutputGrid {
 
     private final boolean withFileOutput;
 
-    // matrix layout:
     private int nDtOut; // nDtOut --> Number of columns.
     private int nDxOut; // nDxOut --> Number of rows.
 
