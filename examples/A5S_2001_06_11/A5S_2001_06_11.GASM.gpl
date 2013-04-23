@@ -52,7 +52,7 @@ set format x "%H:%M"
 
 
 
-set ylabel "x [km]" 0,-0.4 rotate by 90
+set ylabel "x [km]" offset 0,-0.4 rotate by 90
 set yrange [465:493] 
 set ytics 5
 
