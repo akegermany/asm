@@ -1,2 +1,0 @@
-Dies ist eine Datei, welche testweise ins repository commited werden soll. Danach kann sie wieder gelöscht werden.
-Sie enthält jetzt eine Veränderung.
