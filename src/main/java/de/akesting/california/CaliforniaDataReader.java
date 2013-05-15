@@ -47,12 +47,15 @@ public class CaliforniaDataReader {
         System.out.println("************ read data for freeway="+freewayStretch.getFreewayName() +" with stations="+freewayStretch.getStations().size());
         DataRepository dataRepo = new DataRepository();
 
-        // TODO iterate over inputfiles in timeInterval: split per day, here hard-coded example
+        // TODO iterate over inputfiles in timeInterval: split per day needed!!! here hard-coded example
+        
         for (String district : freewayStretch.getDistricts()) {
             File file = getInputFile(district, "2013_01_01");
-            if (file == null) {
-                continue; // TODO REMOVE HERE
+            if (!file.exists()) {
+                // perhaps one want to just log the error 
+                throw new IllegalArgumentException("cannot find data file=" + file);
             }
+            System.out.println("read file="+file);
             // parse file line per line
             addDataFromFileParsing(file, freewayStretch, dataRepo);
         }
@@ -115,10 +118,6 @@ public class CaliforniaDataReader {
         sb.append(timePattern);
         sb.append(".txt");
         File file = new File(dataPath, sb.toString());
-        if (!file.exists()) {
-            // throw new IllegalArgumentException("cannot find data file=" + file);
-            return null; // TODO quickhack
-        }
         return file;
     }
 }
