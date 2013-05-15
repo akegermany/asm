@@ -9,6 +9,7 @@ import com.google.common.base.Preconditions;
 
 import de.akesting.autogen.CrossSection;
 import de.akesting.autogen.TimeSeriesOutput;
+import de.akesting.utils.FormatUtils;
 
 public class TimeSeries {
 

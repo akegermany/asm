@@ -4,6 +4,11 @@ import java.io.File;
 import java.util.Locale;
 
 import de.akesting.autogen.AdaptiveSmoothingMethodProject;
+import de.akesting.autogen.Freeway;
+import de.akesting.autogen.InputCalifornia;
+import de.akesting.california.CaliforniaDataReader;
+import de.akesting.california.CaliforniaInfrastructure;
+import de.akesting.california.FreewayStretch;
 import de.akesting.data.AdaptiveSmoothingMethod;
 import de.akesting.data.DataRepository;
 import de.akesting.data.DataView;
@@ -15,8 +20,12 @@ import de.akesting.xml.XmlInputLoader;
 
 public class AdaptiveSmoothingMethodMain {
 
+    public static void main(String[] args) {
+        new AdaptiveSmoothingMethodMain().run(args);
+    }
+    
     public void run(String[] args) {
-        // Set the default locale to pre-defined locale
+        // Set the default locale
         Locale.setDefault(Locale.US);
 
         // input handling
@@ -24,11 +33,36 @@ public class AdaptiveSmoothingMethodMain {
         File xmlFile = new File(cmdLine.xmlFilename());
         AdaptiveSmoothingMethodProject inputData = XmlInputLoader.getInputData(xmlFile);
 
-        DataRepository dataRep = new DataRepository(cmdLine.defaultReposFilename(),
-                cmdLine.defaultFilteredDataFilename(), inputData.getInput(), cmdLine.absolutePath());
+        // handling two different input formats
+        if (inputData.isSetInputCalifornia()) {
+            processCaliforniaData(cmdLine, inputData);
+        } else {
+            DataRepository dataRep = new DataRepository(cmdLine.defaultReposFilename(),
+                    cmdLine.defaultFilteredDataFilename(), inputData.getInput(), cmdLine.absolutePath());
+            applyAsm(cmdLine, inputData, dataRep);
+        }
 
+        System.out.println("done.");
+    }
+
+    private void processCaliforniaData(ReadCommandline cmdLine, AdaptiveSmoothingMethodProject inputData) {
+        InputCalifornia inputCalifornia = inputData.getInputCalifornia();
+        CaliforniaInfrastructure californiaInfrastructure = new CaliforniaInfrastructure(inputCalifornia);
+        CaliforniaDataReader reader =  new CaliforniaDataReader(inputCalifornia);
+        
+        for(Freeway freeway : inputCalifornia.getFreeways().getFreeway()){
+            FreewayStretch freewayStretch = californiaInfrastructure.getFreewayStretch(freeway.getName());
+            // TODO perhaps faster: open files and read for all freeways simultaneously
+            DataRepository dataRep = reader.loadData(freewayStretch);
+            applyAsm(cmdLine, inputData, dataRep);
+        }
+        
+    }
+
+    private void applyAsm(ReadCommandline cmdLine, AdaptiveSmoothingMethodProject inputData, DataRepository dataRep) {
         DataView dataView = new DataView(inputData.getVirtualGrid(), dataRep);
 
+        // TODO handling of many California freeways in batch
         OutputGrid outputGrid = new OutputGrid(cmdLine.defaultOutFilename(), inputData.getOutput()
                 .getSpatioTemporalContour(), dataRep);
 
@@ -61,12 +95,6 @@ public class AdaptiveSmoothingMethodMain {
             LocationSeries lsOut = new LocationSeries(cmdLine.defaultOutFilename(), inputData.getOutput()
                     .getLocationSeriesOutput(), outputGrid);
         }
-
-        System.out.println("done.");
-
     }
 
-    public static void main(String[] args) {
-        new AdaptiveSmoothingMethodMain().run(args);
-    }
 }

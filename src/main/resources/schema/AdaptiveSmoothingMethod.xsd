@@ -38,7 +38,10 @@
             <xs:sequence>
                 <xs:element ref="ParameterASM" />
                 <xs:element ref="VirtualGrid" />
-                <xs:element ref="Input" />
+                <xs:choice>
+                    <xs:element ref="Input" />
+                    <xs:element ref="InputCalifornia" />
+                </xs:choice>
                 <xs:element ref="Output" />
             </xs:sequence>
         </xs:complexType>
@@ -221,6 +224,34 @@
      <xs:element name="TimeSnapshot">
         <xs:complexType>
             <xs:attribute name="time_h" type="nonNegativeDouble" use="required" />
+        </xs:complexType>
+    </xs:element>
+    
+    
+    <!--  California schema -->
+     <xs:element name="InputCalifornia">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="Freeways" minOccurs="1" maxOccurs="1" />
+            </xs:sequence>
+            <xs:attribute name="infrastructure_file" type="xs:string" use="required" />
+            <xs:attribute name="path" type="xs:string" default="" />
+<!--             <xs:attribute name="with_output" type="xs:boolean" default="false" /> -->
+            <xs:attribute name="from" type="xs:string" use="required" />
+            <xs:attribute name="to" type="xs:string" use="required" />
+        </xs:complexType>
+    </xs:element>
+     <xs:element name="Freeways">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="Freeway" minOccurs="1" maxOccurs="unbounded" />
+            </xs:sequence>
+            </xs:complexType>
+    </xs:element>
+            
+       <xs:element name="Freeway">
+        <xs:complexType>
+            <xs:attribute name="name" type="xs:string" use="required" />
         </xs:complexType>
     </xs:element>
 </xs:schema>

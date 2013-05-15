@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AdaptiveSmoothingMethodProject>
+<!-- smoothing parameter must be adapted to dataset -->
+    <ParameterASM vg_free_kmh="70" vg_cong_kmh="-15" vc_kmh="55" dvc_kmh="10" dx_smooth="1200" dt_smooth="180" />
+    <VirtualGrid n_dx_cutoff="7" n_dt_cutoff="7" />
+    
+    <InputCalifornia infrastructure_file="California_infrastructure.csv" path="./" from="01/01/2013 08:00:00" to="01/01/2013 20:00:00">
+	  <!--  <FormatCalifornia col_time="1" format_time="YYYY-MM-dd' 'HH:mm:ss" col_speed="12" factor2ms="1" /> -->
+	  <!-- TODO option: lanes -->
+	   <Freeways>
+	     <Freeway name="SR99-S" />
+	   </Freeways>
+           
+    </InputCalifornia>
+    <Output> 
+     <SpatioTemporalContour dx="400" dt="120" />
+    </Output>
+</AdaptiveSmoothingMethodProject>
+

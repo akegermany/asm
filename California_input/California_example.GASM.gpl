@@ -1,0 +1,53 @@
+## template for plotting GASM data
+
+set style line 1 lt 7 lw 3 pt 7 ps 0.5
+set style line 99 lt 7 lw 0 pt 7 ps 0.5
+
+#################################
+# Color-Coding und 2d modus
+#################################
+
+set pm3d     # Aktiviert color-coding auf 3D-Plot
+
+set palette color
+set palette model RGB
+#set palette defined ( 0 "red", 12 "orange", 24 "yellow", 38 "green", 55 "blue", 100 "#dd00ff" ) 
+
+set palette defined ( 0 "red", 15 "orange", 30 "yellow", 45 "green", 70 "blue", 100 "#dd00ff" )
+
+##set palette defined ( 0 "white", 1 "red", 15 "orange", 30 "yellow", 45 "green", 70 "blue", 100 "#dd00ff" )
+
+set surface         # setzt Gitternetz bzw. Punktewolke 
+unset surface  # falls schnelles Plotten mit Artefakten
+set nogrid     #ansonsten 2D-Koordinatengitter auf xy-Ebene
+
+#################################
+##set term png
+set term post eps color solid "Helvetica" 38
+set size 2,2
+set pm3d map
+
+set xlabel "Time" 
+#set xtics 1
+#set xdata time
+#set timefmt "%H:%M:%S"
+#set format x "%H:%M"
+#set xrange ["5:00":"20:00"]
+
+set ylabel "x [km]" offset 0,-0.4 rotate by 90
+#set yrange [465:493] 
+set ytics 5
+
+set cbrange [0:140] 
+set colorbox
+set label "V[km/h]" at screen 1.72,1.8
+
+################################################
+unset key
+
+#set xtics "3:00"
+#set xrange ["5:00":"23:00"]
+#set yrange [465.15:492.5]
+timeOffset=1357027200
+set out "California_example.asm_v2d.eps"
+splot  "California_example.GASM" u (($2-timeOffset)/3600):($1/1000.):($3*3.6) w pm3d

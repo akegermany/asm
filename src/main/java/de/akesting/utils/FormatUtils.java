@@ -1,24 +1,26 @@
 package de.akesting.utils;
 
-import java.util.Formatter;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+
 
 public final class FormatUtils {
 
+    private static final DateTimeFormatter formatter = DateTimeFormat.forPattern("YYYY-MM-dd'T'HH:mm:ss");
+    private static final double SECONDS_TO_MILLIS = 1000;
+    
     private FormatUtils() {
         // private constructor
     }
 
-    // TODO refactor with JodaTime
     public static String getFormatedTime(double timeInSeconds) {
-        int intTime = (int) timeInSeconds;
-        int hours = intTime / 3600;
-        intTime = intTime % 3600;
-        int min = intTime / 60;
-        intTime = intTime % 60;
-        StringBuilder stringBuilder = new StringBuilder();
-        Formatter formatter = new Formatter(stringBuilder);
-        formatter.format("%02d:%02d:%02d", hours, min, intTime);
-        return stringBuilder.toString();
+        long instant = (long)(timeInSeconds*SECONDS_TO_MILLIS);
+        DateTime dateTime = new DateTime(instant, DateTimeZone.UTC);
+        return formatter.print(dateTime);
     }
+    
+    
 
 }

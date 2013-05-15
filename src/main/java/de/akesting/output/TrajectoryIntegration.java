@@ -8,6 +8,7 @@ import com.google.common.base.Preconditions;
 import de.akesting.autogen.FloatingCar;
 import de.akesting.autogen.Trajectories;
 import de.akesting.utils.FileUtils;
+import de.akesting.utils.FormatUtils;
 
 public class TrajectoryIntegration {
 

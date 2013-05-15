@@ -2,14 +2,15 @@ package de.akesting.data;
 
 import de.akesting.autogen.SingleData;
 
-class Datapoint {
+public class Datapoint {
+
     private double x = Double.NaN;
     private double t = Double.NaN;
     private double v = Double.NaN;
     private double q = Double.NaN;
     private double rho = Double.NaN;
     private double occ = Double.NaN;
-    private double weight = Double.NaN;
+    private double weight = 1; // default
 
     public Datapoint() {
     }

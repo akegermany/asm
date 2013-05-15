@@ -10,6 +10,7 @@ import com.google.common.base.Preconditions;
 import de.akesting.autogen.SpatioTemporalContour;
 import de.akesting.data.DataRepository;
 import de.akesting.utils.FileUtils;
+import de.akesting.utils.FormatUtils;
 
 public final class OutputGrid {
 
@@ -180,7 +181,7 @@ public final class OutputGrid {
                 double t0 = time(it);
                 fstr.printf("%10.2f  %10.2f  %6.2f   %6.2f  %6.2f  %6.5f  %s  %7.5f ", x0, t0, vOut.get(ix, it),
                         vFree.get(ix, it), vCong.get(ix, it), weight.get(ix, it),
-                        de.akesting.utils.FormatUtils.getFormatedTime(t0), normFree.get(ix, it));
+                       FormatUtils.getFormatedTime(t0), normFree.get(ix, it));
                 double flow = (withFlow()) ? flowOut.get(ix, it) : 0;
                 fstr.printf("  %7.5f", flow);
                 double rho = (withDensity()) ? rhoOut.get(ix, it) : 0;
