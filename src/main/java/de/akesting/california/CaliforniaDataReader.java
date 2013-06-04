@@ -50,7 +50,7 @@ public class CaliforniaDataReader {
         // TODO iterate over inputfiles in timeInterval: split per day needed!!! here hard-coded example
         
         for (String district : freewayStretch.getDistricts()) {
-            File file = getInputFile(district, "2013_01_01");
+            File file = getInputFile(district, "2012_08_14");
             if (!file.exists()) {
                 // perhaps one want to just log the error 
                 throw new IllegalArgumentException("cannot find data file=" + file);

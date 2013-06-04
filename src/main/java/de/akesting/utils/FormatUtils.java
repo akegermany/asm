@@ -20,7 +20,5 @@ public final class FormatUtils {
         DateTime dateTime = new DateTime(instant, DateTimeZone.UTC);
         return formatter.print(dateTime);
     }
-    
-    
 
 }

@@ -271,7 +271,7 @@ public final class DataRepository {
 
     private void writeDataPoint(Datapoint dp, PrintWriter writer) {
         if (writer != null) {
-            writer.printf("%.5e  %.5e  %.5e  %.5e  %.5e  %.5e  %.5e   %s\n", dp.x(), dp.t(), dp.v(), dp.q(),
+            writer.printf("%.2f  %.2f  %.2f  %.5e  %.5e  %.5e  %.5e   %s\n", dp.x(), dp.t(), dp.v(), dp.q(),
                     dp.rho(), dp.weight(), dp.occ(), FormatUtils.getFormatedTime(dp.t()));
         }
     }
