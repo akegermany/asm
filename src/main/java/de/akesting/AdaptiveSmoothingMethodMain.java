@@ -3,6 +3,7 @@ package de.akesting;
 import java.io.File;
 import java.util.Locale;
 
+import org.joda.time.DateTime;
 import de.akesting.autogen.AdaptiveSmoothingMethodProject;
 import de.akesting.autogen.Freeway;
 import de.akesting.autogen.InputCalifornia;
@@ -35,7 +36,7 @@ public class AdaptiveSmoothingMethodMain {
 
         // handling two different input formats
         if (inputData.isSetInputCalifornia()) {
-            processCaliforniaData(cmdLine, inputData);
+           	processCaliforniaData(cmdLine, inputData);            	
         } else {
             DataRepository dataRep = new DataRepository(cmdLine.defaultReposFilename(),
                     cmdLine.defaultFilteredDataFilename(), inputData.getInput(), cmdLine.absolutePath());
@@ -51,10 +52,16 @@ public class AdaptiveSmoothingMethodMain {
         CaliforniaDataReader reader =  new CaliforniaDataReader(inputCalifornia);
         
         for(Freeway freeway : inputCalifornia.getFreeways().getFreeway()){
+            
             FreewayStretch freewayStretch = californiaInfrastructure.getFreewayStretch(freeway.getName());
             // TODO perhaps faster: open files and read for all freeways simultaneously
-            DataRepository dataRep = reader.loadData(freewayStretch);
+            	
+        	// iterate over each day within interval  
+            for (DateTime day = reader.getfromTime(); day.isBefore(reader.gettoTime()); day = day.plusDays(1))
+            {
+            DataRepository dataRep = reader.loadData(freewayStretch,day);
             applyAsm(cmdLine, inputData, dataRep);
+            } // end file iteration
         }
         
     }

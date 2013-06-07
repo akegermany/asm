@@ -25,6 +25,10 @@ public class CaliforniaDataReader {
     private final DateTime fromTime;
     private final DateTime toTime;
     private final Interval interval;
+    private String yyyy;
+    private String mm;
+    private String dd;
+    private static String datestamp;
 
     private final File dataPath;
 
@@ -37,20 +41,36 @@ public class CaliforniaDataReader {
         System.out.println("time interval [from, to]=" + interval);
 
         dataPath = new File(input.getPath());
+        
         if (!dataPath.exists() || !dataPath.isDirectory()) {
             throw new IllegalArgumentException("cannot find path to data=" + dataPath);
         }
     }
+    
+    public DateTime getfromTime() {
+    	return fromTime;
+    	}
+    
+    public DateTime gettoTime() {
+    	return toTime;
+    	}
+    
 
-    public DataRepository loadData(FreewayStretch freewayStretch) {
-        
+    public DataRepository loadData(FreewayStretch freewayStretch, DateTime day) {
+    	
+       
         System.out.println("************ read data for freeway="+freewayStretch.getFreewayName() +" with stations="+freewayStretch.getStations().size());
         DataRepository dataRepo = new DataRepository();
 
-        // TODO iterate over inputfiles in timeInterval: split per day needed!!! here hard-coded example
+        // convert DateTime to String and split it to extract the fields needed for the file names
+        yyyy = day.toString().substring(0,4);
+        mm = day.toString().substring(5,7);
+        dd = day.toString().substring(8,10);
+        datestamp = yyyy+"_"+mm+"_"+dd;
+        
         
         for (String district : freewayStretch.getDistricts()) {
-            File file = getInputFile(district, "2012_08_14");
+        	File file = getInputFile(district, datestamp);
             if (!file.exists()) {
                 // perhaps one want to just log the error 
                 throw new IllegalArgumentException("cannot find data file=" + file);
@@ -63,10 +83,16 @@ public class CaliforniaDataReader {
         dataRepo.analyzeData();
         
         // TODO quickhack for logging:
-        File repoOutputFile = new File("loadedData.dat");
+        File repoOutputFile = new File(datestamp+"-loadedData.dat");
         dataRepo.writeRepository(repoOutputFile);
         return dataRepo;
     }
+    
+    
+    public static String getDatestamp() {
+    	return datestamp;
+    }
+    
 
     private void addDataFromFileParsing(File file, FreewayStretch freewayStretch, DataRepository dataRepo) {
         Scanner scanner = null;

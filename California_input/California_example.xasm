@@ -5,11 +5,11 @@
     <VirtualGrid n_dx_cutoff="7" n_dt_cutoff="7" />
     
     <!-- TODO use more intuitive date format here -->
-    <InputCalifornia infrastructure_file="California_infrastructure.csv" path="./" from="08/14/2012 08:00:00" to="08/14/2012 20:00:00">
+    <InputCalifornia infrastructure_file="California_infrastructure.csv" path="./" from="08/14/2012 08:00:00" to="08/16/2012 20:00:00">
 	  <!--  <FormatCalifornia col_time="1" format_time="YYYY-MM-dd' 'HH:mm:ss" col_speed="12" factor2ms="1" /> -->
 	  <!-- TODO option: lanes -->
 	   <Freeways>
-	     <Freeway name="I405-N" />
+	     <Freeway name="SR99-S" />
 <!-- <Freeway name="SR99-S" /> -->
 	   </Freeways>
            

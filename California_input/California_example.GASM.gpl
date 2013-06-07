@@ -36,8 +36,14 @@ set palette defined ( 0 "red", 15 "orange", 30 "yellow", 45 "green", 70 "blue", 
 #################################
 
 set pm3d map
-set out "California_example.input_v2d.eps"
-splot  "loadedData.dat" u ($2/3600):($1/1000.):($3*3.6) w p pt 7 ps 0.8 palette 
+set out "2012_08_14-California_example.input_v2d.eps"
+splot  "2012_08_14-loadedData.dat" u ($2/3600):($1/1000.):($3*3.6) w p pt 7 ps 0.8 palette 
+
+set out "2012_08_15-California_example.input_v2d.eps"
+splot  "2012_08_15-loadedData.dat" u ($2/3600):($1/1000.):($3*3.6) w p pt 7 ps 0.8 palette 
+
+set out "2012_08_16-California_example.input_v2d.eps"
+splot  "2012_08_16-loadedData.dat" u ($2/3600):($1/1000.):($3*3.6) w p pt 7 ps 0.8 palette 
 
 
 #################################
@@ -50,7 +56,11 @@ set pm3d map
 
 
 timeOffset=0 ##1357027200
-set out "California_example.asm_v2d.eps"
-splot  "California_example.GASM" u (($2-timeOffset)/3600):($1/1000.):($3*3.6) w pm3d
+set out "2012_08_14-California_example.asm_v2d.eps"
+splot  "2012_08_14-California_example.GASM" u (($2-timeOffset)/3600):($1/1000.):($3*3.6) w pm3d
 
+set out "2012_08_15-California_example.asm_v2d.eps"
+splot  "2012_08_15-California_example.GASM" u (($2-timeOffset)/3600):($1/1000.):($3*3.6) w pm3d
 
+set out "2012_08_16-California_example.asm_v2d.eps"
+splot  "2012_08_16-California_example.GASM" u (($2-timeOffset)/3600):($1/1000.):($3*3.6) w pm3d

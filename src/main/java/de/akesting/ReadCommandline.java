@@ -9,6 +9,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
+import de.akesting.california.CaliforniaDataReader;
+
 public final class ReadCommandline {
 
     public static final String programName = "asm";
@@ -27,7 +29,13 @@ public final class ReadCommandline {
     }
 
     public String defaultOutFilename() {
-        String f = filename.substring(0, filename.lastIndexOf("."));
+    	// extract the filename from the complete path
+    	String f_temp = filename.substring(filename.lastIndexOf("\\")+1,filename.lastIndexOf("."));
+    	// prefix the datestamp of the corresponding day
+    	f_temp = CaliforniaDataReader.getDatestamp()+"-"+f_temp;
+    	// put everything together again
+        String f = filename.substring(0, filename.lastIndexOf("\\")+1);
+        f += f_temp;
         f += ".GASM";
         return f;
     }
