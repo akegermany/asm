@@ -12,6 +12,9 @@ import org.joda.time.Interval;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 
+import de.akesting.AdaptiveSmoothingMethodMain;
+import de.akesting.autogen.Freeway;
+import de.akesting.autogen.Freeways;
 import de.akesting.autogen.InputCalifornia;
 import de.akesting.data.DataRepository;
 import de.akesting.data.Datapoint;
@@ -29,6 +32,7 @@ public class CaliforniaDataReader {
     private String mm;
     private String dd;
     private static String datestamp;
+    public static String FreewayNameForFilename;
 
     private final File dataPath;
 
@@ -56,10 +60,12 @@ public class CaliforniaDataReader {
     	}
     
 
-    public DataRepository loadData(FreewayStretch freewayStretch, DateTime day) {
-    	
-       
+    public DataRepository loadData(FreewayStretch freewayStretch, DateTime day, String lanetype_flag) {    	
         System.out.println("************ read data for freeway="+freewayStretch.getFreewayName() +" with stations="+freewayStretch.getStations().size());
+        
+        // dirty workaround to get Freeway Name for file naming
+        FreewayNameForFilename = freewayStretch.getFreewayName();
+        
         DataRepository dataRepo = new DataRepository();
 
         // convert DateTime to String and split it to extract the fields needed for the file names
@@ -77,13 +83,13 @@ public class CaliforniaDataReader {
             }
             System.out.println("read file="+file);
             // parse file line per line
-            addDataFromFileParsing(file, freewayStretch, dataRepo);
+            addDataFromFileParsing(file, freewayStretch, dataRepo, lanetype_flag);
         }
         dataRepo.setReverseDirection(freewayStretch.isReverseDirection());
         dataRepo.analyzeData();
         
         // TODO quickhack for logging:
-        File repoOutputFile = new File(datestamp+"-loadedData.dat");
+        File repoOutputFile = new File(datestamp+"-loadedData-"+FreewayNameForFilename+"-"+AdaptiveSmoothingMethodMain.getlanetype_flag()+".dat");
         dataRepo.writeRepository(repoOutputFile);
         return dataRepo;
     }
@@ -94,7 +100,7 @@ public class CaliforniaDataReader {
     }
     
 
-    private void addDataFromFileParsing(File file, FreewayStretch freewayStretch, DataRepository dataRepo) {
+    private void addDataFromFileParsing(File file, FreewayStretch freewayStretch, DataRepository dataRepo, String lanetype_flag) {
         Scanner scanner = null;
         try {
             scanner = new Scanner(new FileReader(file));
@@ -107,14 +113,22 @@ public class CaliforniaDataReader {
                 // TODO here further filtering possible: laneTypes etc
                 String stationId = line[1].trim();
                 FreewayStation station = freewayStretch.getStation(stationId);
+        
                 if (station != null){
                     DateTime timeStamp = LocalDateTime.parse(line[0], DateTimeFormat.forPattern(TIME_FORMAT)).toDateTime(
-                            DateTimeZone.UTC);
-                    if(interval.contains(timeStamp.getMillis())){
-                        dataRepo.addDataPoint(createDataPoint(station, timeStamp, line));
-                    }
-                }
-            }
+                            DateTimeZone.UTC);               
+                      // Make sure that the datapoint lays within stated time interval. Old notation with "interval" does not
+                      // work here anymore when iterating over several days because each datapoint after "toTime" of the
+                      // first day still lays within the interval in second day and so on.
+                      if (timeStamp.getMillisOfDay() > getfromTime().getMillisOfDay() && 
+                    	  timeStamp.getMillisOfDay() < gettoTime().getMillisOfDay()) {
+                    	  // only use datapoints in accordance to lanetype_flag, say HOV in first and ML in second run
+                    	  if(station.lanetype().equals(lanetype_flag)) {    
+                    			dataRepo.addDataPoint(createDataPoint(station, timeStamp, line)); 
+                    	  }
+                    	}
+                  }
+           	}
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } finally {
@@ -129,7 +143,7 @@ public class CaliforniaDataReader {
         dp.set_t(TimeUnit.MILLISECONDS.toSeconds(timestamp.getMillis()));
         dp.set_x(station.absolutePostmileMeters());
         dp.set_v(Double.parseDouble(line[11])*MILES_PER_H_TO_M_PER_S);
-        // System.out.println("created dp=" + dp + " at time="+timestamp.getMillis());
+//         System.out.println("created dp=" + dp + " at time="+timestamp.getMillis());
         return dp;
     }
 

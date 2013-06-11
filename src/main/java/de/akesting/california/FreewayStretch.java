@@ -24,11 +24,11 @@ public class FreewayStretch implements Iterable<FreewayStation> {
                     "inconsistent drivingDirection=" + isReverseDirection() + ", but station=" + station);
         }
 
-        
         boolean alreadyAdded = stations.put(station.station(), station) !=null;
         if (!alreadyAdded) {
             if (!stations.isEmpty() && !districts.contains(station.district())) {
-                // System.out.println("freeway="+station.freeway()+" in additional district=" + station.district());
+//            	System.out.println("Test: " + getStation(station.station()) + getLanetype());
+             // System.out.println("freeway="+station.freeway()+" in additional district=" + station.district());
                 districts.add(station.district());
             }
         } else {
@@ -59,7 +59,7 @@ public class FreewayStretch implements Iterable<FreewayStation> {
         Preconditions.checkArgument(!stations.isEmpty());
         return Iterators.get(iterator(), 0).freeway();
     }
-    
+     
     public Collection<FreewayStation> getStations(){
         return Collections.unmodifiableCollection(stations.values());
     }

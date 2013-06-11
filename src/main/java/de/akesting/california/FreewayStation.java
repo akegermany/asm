@@ -21,12 +21,12 @@ public class FreewayStation {
         }
     }
 
-    static final String[] STATION_COLUMNS = "Freeway,Station,Absolute_Postmile,Lanes,Direction,District,Name,California_Postmile,Latitude,Longitude".split(",");
-    
+    static final String[] STATION_COLUMNS = "Freeway,Station,Lanetype,Absolute_Postmile,Lanes,Direction,District,Name,California_Postmile,Latitude,Longitude".split(",");
     private final double FACTOR_MILES_TO_METERS = 1609.34;
     
     private final String freeway;
     private final String station;
+    private final String lanetype;
     private final double absolutePostmileMeters;
     private final int lanes;
     private final boolean reverseDirection;
@@ -43,6 +43,7 @@ public class FreewayStation {
         int column = 0;
         freeway = line[column++];
         station = line[column++];
+        lanetype    = line[column++];
         absolutePostmileMeters = FACTOR_MILES_TO_METERS* Double.parseDouble(line[column++]);
         lanes = Integer.parseInt(line[column++]);
         reverseDirection = line[column++].equals("d"); // decreasing=reverse direction 
@@ -65,6 +66,10 @@ public class FreewayStation {
 
     String station() {
         return station;
+    }
+    
+    String lanetype() {
+    	return lanetype;
     }
 
     double absolutePostmileMeters() {
@@ -101,7 +106,7 @@ public class FreewayStation {
 
     @Override
     public String toString() {
-        return "FreewayStation [district="+district+", freeway=" + freeway + ", station=" + station + ", absolutePostmileMeters="
+        return "FreewayStation [district="+district+", freeway=" + freeway + ", station=" + station + ", lanetype=" + lanetype + ", absolutePostmileMeters="
                 + absolutePostmileMeters + ", lanes=" + lanes + ", reverseDirection=" + reverseDirection + "]";
     }
 

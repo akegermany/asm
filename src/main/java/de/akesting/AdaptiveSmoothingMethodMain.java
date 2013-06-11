@@ -20,8 +20,10 @@ import de.akesting.output.TrajectoryIntegration;
 import de.akesting.xml.XmlInputLoader;
 
 public class AdaptiveSmoothingMethodMain {
-
-    public static void main(String[] args) {
+	
+	private static String lanetype_flag;
+	
+	public static void main(String[] args) {
         new AdaptiveSmoothingMethodMain().run(args);
     }
     
@@ -50,23 +52,37 @@ public class AdaptiveSmoothingMethodMain {
         InputCalifornia inputCalifornia = inputData.getInputCalifornia();
         CaliforniaInfrastructure californiaInfrastructure = new CaliforniaInfrastructure(inputCalifornia);
         CaliforniaDataReader reader =  new CaliforniaDataReader(inputCalifornia);
-        
+                
         for(Freeway freeway : inputCalifornia.getFreeways().getFreeway()){
             
             FreewayStretch freewayStretch = californiaInfrastructure.getFreewayStretch(freeway.getName());
             // TODO perhaps faster: open files and read for all freeways simultaneously
             	
         	// iterate over each day within interval  
-            for (DateTime day = reader.getfromTime(); day.isBefore(reader.gettoTime()); day = day.plusDays(1))
-            {
-            DataRepository dataRep = reader.loadData(freewayStretch,day);
-            applyAsm(cmdLine, inputData, dataRep);
+            for (DateTime day = reader.getfromTime(); day.isBefore(reader.gettoTime()); day = day.plusDays(1)) {    		
+            	
+            	// iterate over two different lanetypes (Main Line [ML] & HOV)
+            	lanetype_flag = "";
+            	for (int i=1; i<=2; i++) { 
+            		
+            		if (i==1) {lanetype_flag = "HOV";}
+            		else	  {lanetype_flag = "ML";}
+            		DataRepository dataRep = reader.loadData(freewayStretch,day,lanetype_flag);
+            		cmdLine.defaultOutFilename();
+            		applyAsm(cmdLine, inputData, dataRep);      
+            		
+            	} // end HOV / ML iteration
             } // end file iteration
         }
         
     }
+    
+	public static String getlanetype_flag() {
+		return lanetype_flag;
+	}
+	
 
-    private void applyAsm(ReadCommandline cmdLine, AdaptiveSmoothingMethodProject inputData, DataRepository dataRep) {
+	private void applyAsm(ReadCommandline cmdLine, AdaptiveSmoothingMethodProject inputData, DataRepository dataRep) {
         DataView dataView = new DataView(inputData.getVirtualGrid(), dataRep);
 
         // TODO handling of many California freeways in batch
