@@ -1,0 +1,50 @@
+## template for plotting GASM data
+
+set style line 1 lt 7 lw 3 pt 7 ps 0.5
+set style line 99 lt 7 lw 0 pt 7 ps 0.5
+
+
+##set term png
+set term post eps color solid "Helvetica" 38
+set size 2,2
+
+
+set xlabel "Time [h]" 		#x axis title
+set xdata time					#data format on x axis
+set timefmt "%s"				#input format on x axis
+set xtics 3600					#tics every 3600 seconds = 1 hour
+set format x "%H"				#output format on x axis
+
+set ylabel "Absolute Postmile [km]" offset 0,-0.4 rotate by 90 	#y axis title
+set ytics 5									 	#tics every 5 km
+
+#print filename as title above canvas, var GASM_filename is given by batchfile
+set key out vert
+set key center top
+set title GASM_filename
+
+#################################
+# Color-Coding und 2d modus
+#################################
+set palette color
+set palette model RGB
+set cbrange [0:140] 
+set colorbox
+set label "V[km/h]" at screen 1.72,1.8
+#set palette defined ( 0 "red", 12 "orange", 24 "yellow", 38 "green", 55 "blue", 100 "#dd00ff" ) 
+set palette defined ( 0 "red", 15 "orange", 30 "yellow", 45 "green", 70 "blue", 100 "#dd00ff" )
+##set palette defined ( 0 "white", 1 "red", 15 "orange", 30 "yellow", 45 "green", 70 "blue", 100 "#dd00ff" )
+
+#################################
+
+set pm3d     # Aktiviert color-coding auf 3D-Plot
+set surface         # setzt Gitternetz bzw. Punktewolke 
+unset surface  # falls schnelles Plotten mit Artefakten
+set nogrid     #ansonsten 2D-Koordinatengitter auf xy-Ebene
+set pm3d map
+
+
+set out GASM_filename.'.eps'	#var GASM_filename is given from batch file
+splot  GASM_filename.'.GASM' u ($2):($1/1000.):($3*3.6) w pm3d notitle
+
+#################################
