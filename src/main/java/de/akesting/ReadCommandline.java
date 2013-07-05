@@ -22,6 +22,8 @@ public final class ReadCommandline {
 
     private String filename = "";
     private String workingDirectory = "";
+	// Effectively number of days to work on simultaneously
+    private int numThreads = 2;
 
     public String xmlFilename() {
         return filename;
@@ -30,22 +32,17 @@ public final class ReadCommandline {
     public String absolutePath() {
         return workingDirectory;
     }
+    
+    public int getNumThreads() {
+		return numThreads;
+	}
 
+	// TODO Reset old defaultOutFilename function [SM]
     public String defaultOutFilename() {
-    	// extract the filename from the complete path
-//    	String f_temp = filename.substring(filename.lastIndexOf("\\")+1,filename.lastIndexOf("."));
-    	// prefix the datestamp of the corresponding day
-    	String f_temp = CaliforniaDataReader.getDatestamp()+"-";
-    	f_temp += CaliforniaDataReader.FreewayNameForFilename;
-//    	f_temp = CaliforniaDataReader.getDatestamp()+"-"+f_temp;
-    	// put everything together again
-        String f = filename.substring(0, filename.lastIndexOf("\\")+1);
-        f += f_temp;
-        // suffix the HOV / ML flag
-        f += "-" + AdaptiveSmoothingMethodMain.getlanetype_flag();
-        f += ".GASM";
+        String f = filename.substring(0, filename.lastIndexOf("."));        
+        f += ".out";
         return f;
-    }
+    }    
 
     public String defaultReposFilename() {
         String f = filename.substring(0, filename.lastIndexOf("."));
@@ -85,6 +82,7 @@ public final class ReadCommandline {
         options = new Options();
         options.addOption("h", "help", false, "print this message");
         options.addOption("f", "file", true, "project (xml) file name ");
+        options.addOption("t", "numthreads", true, "number of worker threads ");
 
         parseAndInterrogate(args);
 
@@ -119,6 +117,13 @@ public final class ReadCommandline {
             }
             if (line.hasOption('f')) {
                 filename = line.getOptionValue('f');
+            }
+            if (line.hasOption('t')) {
+            	try {
+            		numThreads = Integer.parseInt(line.getOptionValue('t'));
+            	} catch (NumberFormatException e) {
+            		// Use default value
+            	}
             }
         } catch (ParseException exp) {
             System.out.println("Unexpected exception:" + exp.getMessage());

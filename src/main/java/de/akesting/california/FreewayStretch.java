@@ -14,8 +14,8 @@ import com.google.common.collect.Iterators;
 public class FreewayStretch implements Iterable<FreewayStation> {
 
     // mapping stationId --> Station
-    private final Map<String, FreewayStation> stations = new HashMap<>();
-    private final Set<String> districts = new HashSet<>();
+    private final Map<String, FreewayStation> stations = new HashMap<String, FreewayStation>();
+    private final Set<String> districts = new HashSet<String>();
 
     public void add(FreewayStation station) {
         Preconditions.checkNotNull(station);

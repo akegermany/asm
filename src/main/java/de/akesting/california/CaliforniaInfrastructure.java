@@ -19,7 +19,7 @@ import de.akesting.autogen.InputCalifornia;
 public class CaliforniaInfrastructure {
     
     // FreewayId used as key
-    private final Map<String, FreewayStretch> freeways = new HashMap<>();
+    private final Map<String, FreewayStretch> freeways = new HashMap<String, FreewayStretch>();
     
     public CaliforniaInfrastructure(InputCalifornia inputCalifornia) {
         Preconditions.checkNotNull(inputCalifornia);
@@ -69,7 +69,7 @@ public class CaliforniaInfrastructure {
     
     private static List<String[]> readData(File file, char separator) {
         System.out.println("read data from file="+ file.getAbsolutePath());
-        List<String[]> myEntries = new ArrayList<>();
+        List<String[]> myEntries = new ArrayList<String[]>();
         CSVReader reader = null;
         try {
             reader = new CSVReader(new FileReader(file), separator);
