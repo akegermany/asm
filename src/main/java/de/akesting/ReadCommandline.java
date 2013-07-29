@@ -22,6 +22,7 @@ public final class ReadCommandline {
 
     private String filename = "";
     private String workingDirectory = "";
+	public static String aggregation = "";
 	// Effectively number of days to work on simultaneously
     private int numThreads = 2;
 
@@ -83,6 +84,7 @@ public final class ReadCommandline {
         options.addOption("h", "help", false, "print this message");
         options.addOption("f", "file", true, "project (xml) file name ");
         options.addOption("t", "numthreads", true, "number of worker threads ");
+		options.addOption("a", "aggregation", true, "data aggregation ");
 
         parseAndInterrogate(args);
 
@@ -112,6 +114,9 @@ public final class ReadCommandline {
             // parse the command line arguments
             CommandLine line = parser.parse(options, args);
 
+		    if (line.hasOption('a')) {
+                aggregation = line.getOptionValue('a');
+            }
             if (line.hasOption('h')) {
                 help();
             }

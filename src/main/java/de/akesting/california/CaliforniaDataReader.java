@@ -22,6 +22,7 @@ import org.joda.time.format.DateTimeFormat;
 import com.google.common.collect.Lists;
 
 import de.akesting.AdaptiveSmoothingMethodMain;
+import de.akesting.ReadCommandline;
 import de.akesting.autogen.Freeway;
 import de.akesting.autogen.Freeways;
 import de.akesting.autogen.InputCalifornia;
@@ -63,15 +64,24 @@ public class CaliforniaDataReader {
     	return toTime;
     	}
     
-
-	public HashMap<Freeway, HashMap<String[], DataRepository>> loadRepos(
-			Map<Freeway, FreewayStretch> freewayStretches, String datetime,
-			String[][] lanetypeGroups, Set<String> allDistricts) {
-		HashMap<Freeway, HashMap<String[], DataRepository>> dataRepos = new HashMap<Freeway, HashMap<String[], DataRepository>>();
+    /**
+     * Get all data repositories for all freeway and lanetypes on a given day 
+     * @param freewayStretches Freeways to look for (filter)
+     * @param datetime Date/day (filter)
+     * @param lanetypeGroups Lanetypes to look for (filter); grouping possible
+     * @param allDistricts Preselected list of districts to take into account (filter)
+     * @return List of list of data repositories
+     */
+	public HashMap<Freeway, HashMap<String[], DataRepository>> loadRepos(Map<Freeway, FreewayStretch> freewayStretches, String datetime, String[][] lanetypeGroups, Set<String> allDistricts) {
+		// Create return collection
+		HashMap<Freeway, HashMap<String[], DataRepository>> dataRepos = new HashMap<Freeway, HashMap<String[], DataRepository>>();		
 		for (Entry<Freeway, FreewayStretch> entry : freewayStretches.entrySet()) {
 			HashMap<String[], DataRepository> laneGroupRepos = new HashMap<String[], DataRepository>();
 			dataRepos.put(entry.getKey(), laneGroupRepos);
 		}
+		// Create temp hashset of all data repositories to be created
+		HashSet<DataRepository> dataReposSet = new HashSet<DataRepository>();
+		// Create set of all lanetypes 
 		Set<String> lanetypeGroupsFlat = new HashSet<String>();
 		for (int i=0; i<lanetypeGroups.length; i++) {
 			for (int j=0; j<lanetypeGroups[i].length; j++) {
@@ -79,15 +89,18 @@ public class CaliforniaDataReader {
 			}
 		}		
 		
+		// Data sources are distributed based on districts
+		// Iterate over every district file
         for (String district : allDistricts) {
+        	// Expected filename {district}_text_station_5min_{datetime}.txt
         	File file = getInputFile(district, datetime);
-            if (!file.exists()) {
-                // perhaps one want to just log the error 
-                // throw new IllegalArgumentException("cannot find data file=" + file);
-            	System.err.println("cannot find data file=" + file);
-            	continue;
+            if (!file.exists()) { 
+            	// Gracefully skip missing data files
+                System.err.println("cannot find data file=" + file);
+                continue;
             }
             System.out.println("read file="+file);
+            // Build index of possible freeways for this district. Ignore others while parsing.
             ArrayList<Freeway> searchFreeways = new ArrayList<Freeway>();
             for (Entry<Freeway, FreewayStretch> entry : freewayStretches.entrySet()) {
             	if (Lists.newArrayList(entry.getValue().getDistricts()).contains(district)) {
@@ -95,7 +108,8 @@ public class CaliforniaDataReader {
             	}
             }
             if (searchFreeways.isEmpty()) {
-            		continue;
+            	// Don't even look at the input file as no freeways are to be found based on infrastructure data
+            	continue;
             }
             // parse file line per line          
             Scanner scanner = null;
@@ -116,9 +130,11 @@ public class CaliforniaDataReader {
 						continue;
 					}
 					String stationId = line[1].trim();
+					// Create list of freeways that this datapoint will be added to
 					ArrayList<Freeway> freeWaysWithStation = new ArrayList<Freeway>();
 					String lanetype = null;
 					Datapoint datapoint = null;
+					// Iterate over all freeways and check if datapoint should be added to corresponding data repository
 					for (Freeway freeway : searchFreeways) {
 						FreewayStretch fs = freewayStretches.get(freeway);
 						FreewayStation station = fs.getStation(stationId);
@@ -130,6 +146,7 @@ public class CaliforniaDataReader {
 								// Assumption: station data among freeways are consistent [SM]
 								continue outerloop;
 							}
+							// Create datapoint!
 							if (datapoint == null) datapoint = createDataPoint(station, timeStamp, line);
 							freeWaysWithStation.add(freeway);
 							// TODO If one station belongs to max 1 freeway we can break the loop [SM]
@@ -137,16 +154,24 @@ public class CaliforniaDataReader {
 						}
 					}
 					if (freeWaysWithStation.isEmpty() || lanetype == null) {
+						// No freeways found for this station or lanetype
 						continue;
 					}
+					// Add datapoint to freeways that list this station 
 					for (Freeway freeway : freeWaysWithStation) {
+						// For all lanetype groups for this freeway...
 						for (String[] group : lanetypeGroups) {
+							// If group has found lanetype, create data repository and add datapoint to it
 							if (Arrays.asList(group).contains(lanetype)) {
 								if (!dataRepos.get(freeway).containsKey(group)) {
 									DataRepository dataRepository = new DataRepository();
+									// Set direction
 									dataRepository.setReverseDirection(freewayStretches.get(freeway).isReverseDirection());
+									// Add data repository to overall collection and temporary list
 									dataRepos.get(freeway).put(group, dataRepository);
+									dataReposSet.add(dataRepository);
 								}
+								// Add data point
 								dataRepos.get(freeway).get(group).addDataPoint(datapoint);
 							}
 						}
@@ -160,19 +185,10 @@ public class CaliforniaDataReader {
                 }
             }
         }
-		for (Entry<Freeway, HashMap<String[], DataRepository>> freewayRepos : dataRepos.entrySet()) {
-			String freewayName = freewayRepos.getKey().getName();
-			for (Entry<String[], DataRepository>  laneGroupRepo : freewayRepos.getValue().entrySet()) {
-				DataRepository dataRepository = laneGroupRepo.getValue();
-				dataRepository.analyzeData();
-				String laneGroupName = "";
-				for (String lane : laneGroupRepo.getKey()) laneGroupName += lane;
-				// TODO No path given [SM]
-				File repoOutputFile = new File(datetime + "-loadedData-" + freewayName + "-" + laneGroupName + ".dat");
-				// TODO Is this really necessary? [SM]
-				dataRepository.writeRepository(repoOutputFile);
-			}
-		}        
+        // Set contains all nested data repositories. Iterate and analyze data.
+        for (DataRepository dataRepo : dataReposSet) {
+        	dataRepo.analyzeData();
+        }
 		return dataRepos;		
 	}
 
@@ -230,9 +246,28 @@ public class CaliforniaDataReader {
             sb.append(0);
         }
         sb.append(district);
-        sb.append("_text_station_5min_");
-        sb.append(timePattern);
-        sb.append(".txt");
+		
+		// 30s
+		if (ReadCommandline.aggregation.equals("30s")) {
+		sb.append("_text_station_raw_");
+		sb.append(timePattern);
+		sb.append(".txt");
+		}
+		
+		// 5min
+		else if (ReadCommandline.aggregation.equals("5min")) {
+		sb.append("_text_station_5min_");
+		sb.append(timePattern);
+		sb.append(".txt");
+		}
+		
+		// 1hour
+		else if (ReadCommandline.aggregation.equals("1hour")) {
+		sb.append("_text_station_hour_");
+		sb.append(timePattern.substring(0,timePattern.length()-3));
+		sb.append(".txt");
+		}
+		
         File file = new File(dataPath, sb.toString());
         return file;
     }
