@@ -201,14 +201,15 @@ public final class DataRepository {
     
     private boolean addDataPoint(Datapoint dp, DataRandomizer dataRandomizer, DataFilter filter) {
         if ((!dp.isValid())) {
-            // System.out.print("dp not valid: "); dp.print();
+            // System.out.print("dp not valid: ");
+            // dp.print();
             writeDataPoint(dp, fstrFilter);
             return false;
         }
-        // else{
-        // System.out.print("dp valid: ");
-        // dp.print();
-        // }
+ else {
+            // System.out.print("dp valid: ");
+            dp.print();
+        }
         if (filter != null && filter.dropData(dp)) {
             // System.out.print("dp dropped: "); dp.print();
             writeDataPoint(dp, fstrFilter);

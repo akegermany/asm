@@ -90,6 +90,8 @@
     <xs:element name="Format">
         <xs:complexType>
             <xs:attribute name="col_time" type="nonNegativeInteger" use="required" />
+            <xs:attribute name="format_time" type="xs:string" />
+<!--             format_time="YYYY-MM-dd' 'HH:mm:ss" -->
             <xs:attribute name="col_speed" type="positiveInteger" use="required" />
             <!--  provided in Data element -->
             <xs:attribute name="col_position" type="positiveInteger" />
