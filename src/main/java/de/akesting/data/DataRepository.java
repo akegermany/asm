@@ -46,8 +46,8 @@ public final class DataRepository {
     public boolean isReverseDirection() {
         return this.isReverseDirection;
     }
-    
-    public void setReverseDirection(boolean value){
+
+    public void setReverseDirection(boolean value) {
         this.isReverseDirection = value;
     }
 
@@ -67,7 +67,7 @@ public final class DataRepository {
         initialize();
 
         this.isReverseDirection = input.isReverseDirection();
-        
+
         this.filename = outFilename;
         if (input.isSetOutputFilename()) {
             this.filename = input.getOutputFilename();
@@ -92,7 +92,7 @@ public final class DataRepository {
             fstrFilter.close();
         }
     }
-    
+
     // new constructor for California data, much more lean!
     public DataRepository() {
         initialize();
@@ -150,10 +150,9 @@ public final class DataRepository {
         }
         System.out.printf(" DataRepository: %n");
         System.out.printf(" *  data.size() = %d *************** %n", data.size());
-        System.out.printf("    xMin= %.2fm=%.2f km, xMax=%.2fm=%.2fkm%n", xMin, xMin / 1000., xMax,
-                xMax / 1000.);
-        System.out.printf("    tMin= %.2fs=%.2f h=%s, tMax=%.2fs=%.2fh=%s%n", tMin, tMin / 3600., FormatUtils.getFormatedTime(tMin), tMax,
-                tMax / 3600., FormatUtils.getFormatedTime(tMax));
+        System.out.printf("    xMin= %.2fm=%.2f km, xMax=%.2fm=%.2fkm%n", xMin, xMin / 1000., xMax, xMax / 1000.);
+        System.out.printf("    tMin= %.2fs=%.2f h=%s, tMax=%.2fs=%.2fh=%s%n", tMin, tMin / 3600.,
+                FormatUtils.getFormatedTime(tMin), tMax, tMax / 3600., FormatUtils.getFormatedTime(tMax));
         System.out.printf("    speedMin= %.2fkm/h, speedMax=%.2fkm/h%n", vMin * 3.6, vMax * 3.6);
         System.out.printf("    flowMin= %.2f/h, flowMax=%.2f/h%n", flowMin / 3600, flowMax / 3600);
         System.out.printf("    densityMin= %.2f/km, densityMax=%.2f/km%n", rhoMin / 1000, rhoMax / 1000);
@@ -190,25 +189,24 @@ public final class DataRepository {
             while (dataReader.isReady()) {
                 Datapoint dp = dataReader.readDatapoint();
                 addDataPoint(dp, dataRandomizer, filter);
-            } 
-        } 
+            }
+        }
     }
 
     // for California data
-    public boolean addDataPoint(Datapoint dp){
+    public boolean addDataPoint(Datapoint dp) {
         return addDataPoint(dp, null, null);
     }
-    
+
     private boolean addDataPoint(Datapoint dp, DataRandomizer dataRandomizer, DataFilter filter) {
         if ((!dp.isValid())) {
             // System.out.print("dp not valid: ");
             // dp.print();
             writeDataPoint(dp, fstrFilter);
             return false;
-        }
- else {
+        } else {
             // System.out.print("dp valid: ");
-            dp.print();
+            // dp.print();
         }
         if (filter != null && filter.dropData(dp)) {
             // System.out.print("dp dropped: "); dp.print();
@@ -272,11 +270,11 @@ public final class DataRepository {
 
     private void writeDataPoint(Datapoint dp, PrintWriter writer) {
         if (writer != null) {
-            writer.printf("%.2f  %.2f  %.2f  %.5e  %.5e  %.5e  %.5e   %s\n", dp.x(), dp.t(), dp.v(), dp.q(),
-                    dp.rho(), dp.weight(), dp.occ(), FormatUtils.getFormatedTime(dp.t()));
+            writer.printf("%.2f  %.2f  %.2f  %.5e  %.5e  %.5e  %.5e   %s\n", dp.x(), dp.t(), dp.v(), dp.q(), dp.rho(),
+                    dp.weight(), dp.occ(), FormatUtils.getFormatedTime(dp.t()));
         }
     }
-    
+
     public boolean withFlow() {
         return withFlow;
     }
@@ -336,6 +334,5 @@ public final class DataRepository {
     public double occMax() {
         return occMax;
     }
-
 
 }
