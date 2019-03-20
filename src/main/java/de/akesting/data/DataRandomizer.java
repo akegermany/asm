@@ -8,12 +8,9 @@ import de.akesting.autogen.RandomErrors;
 
 class DataRandomizer {
 
-    private final static long SEED = 42;
+    private static final long SEED = 42;
 
     private final Random rand;
-
-    double posErrorAbs = 0;
-    double speedErrorRel = 0;
 
     private final RandomErrors randomErrors;
 

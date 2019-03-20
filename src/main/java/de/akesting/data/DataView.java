@@ -19,7 +19,7 @@ public final class DataView {
 
     private final VirtualGrid virtualGridConfig;
 
-    private ArrayList<Datapoint>[][] griddedData; // matrix of list [x][t]
+    private List<Datapoint>[][] griddedData; // matrix of list [x][t]
 
     public boolean withFlow() {
         return dataRep.withFlow();
@@ -76,9 +76,8 @@ public final class DataView {
     }
 
     private boolean isAvailable(int ix, int it) {
-        boolean ret = (ix >= 0 && ix < nx && it >= 0 && it < nt);
+        return (ix >= 0 && ix < nx && it >= 0 && it < nt);
         // if(ret)System.out.printf("isAvailable: nx=%d, nt=%d:  ix=%d, it=%d : %s %n", nx, nt, ix, it, (ret)? "true":"false");
-        return ret;
     }
 
     public boolean isReverseDirection() {
@@ -125,13 +124,13 @@ public final class DataView {
         return Math.min(nt - 1, (int) ((t - dataRep.tMin()) / dt));
     }
 
-    private void showGriddedData() {
-        System.out.printf("dx=%.5f, dt=%.5f,  nx=%d,  nt=%d %n", dx, dt, nx, nt);
-        for (int i = 0; i < nx; i++) {
-            for (int j = 0; j < nt; j++) {
-                System.out.printf("(x=%5.1f,t=%5.1f)=%d ", i * dx, j * dt, griddedData[i][j].size());
-            }
-            System.out.printf("%n%n");
-        }
-    }
+//    private void showGriddedData() {
+//        System.out.printf("dx=%.5f, dt=%.5f,  nx=%d,  nt=%d %n", dx, dt, nx, nt);
+//        for (int i = 0; i < nx; i++) {
+//            for (int j = 0; j < nt; j++) {
+//                System.out.printf("(x=%5.1f,t=%5.1f)=%d ", i * dx, j * dt, griddedData[i][j].size());
+//            }
+//            System.out.printf("%n%n");
+//        }
+//    }
 }

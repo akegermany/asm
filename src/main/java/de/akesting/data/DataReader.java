@@ -59,7 +59,7 @@ class DataReader {
             }
 
             if (alternativePath.startsWith("~")) {
-                if (FileUtils.dirExists(FileUtils.homeDirectory(), "check if user.home exits")) {
+                if (FileUtils.dirExists(FileUtils.homeDirectory())) {
                     String newPath = alternativePath.substring(1, alternativePath.length());
                     alternativePath = FileUtils.homeDirectory() + newPath;
                     System.out.printf(" replace ~ with user.home = %s --> path = \"%s\" %n", FileUtils.homeDirectory(),
@@ -76,7 +76,7 @@ class DataReader {
         if (dataEntryConfig.isSetFilename()) {
             String filename = dataEntryConfig.getFilename();
             String completeFilename = absPath + filename;
-            if (FileUtils.fileExists(completeFilename, " first check for file in working directory ... found file")) {
+            if (FileUtils.fileExists(completeFilename)) {
                 System.out
                         .printf(" ... okay, detector file \"%s\" found in working directory ... %n", completeFilename);
                 if (alternativePath.length() > 0) {
@@ -175,22 +175,21 @@ class DataReader {
     private void parseLine(String[] line, Datapoint dp) {
         String timeString = line[dataFormat.getColTime() - 1];
         if (dataFormat.isSetFormatTime()) {
-            DateTime timeStamp = LocalDateTime.parse(timeString, 
-            DateTimeFormat.forPattern(dataFormat.getFormatTime())).toDateTime(DateTimeZone.UTC);
+            DateTime timeStamp = LocalDateTime.parse(timeString,
+                    DateTimeFormat.forPattern(dataFormat.getFormatTime())).toDateTime(DateTimeZone.UTC);
             // System.out.println("time = " + timeStamp);
             dp.set_t(TimeUnit.MILLISECONDS.toSeconds(timeStamp.getMillis()));
-        }
-        else{
+        } else {
             dp.set_t(Double.parseDouble(timeString) * dataFormat.getFactor2S() + 3600 * dataFormat.getTimeOffsetH());
-         } 
-        
-        if (dataFormat.isSetColPosition() ) {
+        }
+
+        if (dataFormat.isSetColPosition()) {
             dp.set_x(Double.parseDouble(line[dataFormat.getColPosition() - 1]) * dataFormat.getFactor2M() + 1000
                     * dataFormat.getPositionOffsetKm());
-         }
-        
+        }
+
         dp.set_v(Double.parseDouble(line[dataFormat.getColSpeed() - 1]) * dataFormat.getFactor2Ms());
-        
+
         // TODO
 //        if (dataFormat.isSetColFlow() && col == dataFormat.getColFlow()) {
 //         dp.set_q(tokenizer.nval * dataFormat.getFactor2Invs());

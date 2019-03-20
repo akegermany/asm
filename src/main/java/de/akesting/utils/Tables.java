@@ -5,8 +5,7 @@ import org.slf4j.LoggerFactory;
 
 public final class Tables {
 
-    /** The Constant logger. */
-    private final static Logger Logger = LoggerFactory.getLogger(Tables.class);
+    private static final Logger LOG = LoggerFactory.getLogger(Tables.class);
 
     private static final double TINY_VALUE = 1.e-10;
 
@@ -22,7 +21,6 @@ public final class Tables {
     }
 
     public static double intp(double[] tab, int n, double x, double xmin, double xmax) {
-        // int n = tab.length;
         double intp_value = tab[0];
         double ir = n * (x - xmin) / (xmax - xmin);
         int i = (int) ir;
@@ -32,7 +30,7 @@ public final class Tables {
         } else if (i == n - 1) {
             intp_value = tab[n - 1];
         } else {
-            Logger.error("intp: index i={} (ir={}) out of range", i, ir);
+            LOG.error("intp: index i={} (ir={}) out of range", i, ir);
             System.exit(-1);
         }
         return intp_value;
@@ -51,7 +49,7 @@ public final class Tables {
         int ny = y_vals.length;
         int n = Math.min(nx, ny);
         if (nx != ny) {
-            Logger.warn("Tables.intpextp: length={} of x_vals not equal length={} of yvals[]", nx, ny);
+            LOG.warn("Tables.intpextp: length={} of x_vals not equal length={} of yvals[]", nx, ny);
         }
         int i = 0;
         double intp_value;
@@ -72,7 +70,7 @@ public final class Tables {
         }
 
         if (false) {
-            Logger.warn("Tables.intpextp: nx={}" + nx + " ny=" + ny + " x=" + x + " x_vals[0]=" + x_vals[0]
+            LOG.warn("Tables.intpextp: nx={}" + nx + " ny=" + ny + " x=" + x + " x_vals[0]=" + x_vals[0]
                     + " x_vals[nx-1]=" + x_vals[nx - 1] + " result=" + intp_value);
         }
         return (intp_value);

@@ -238,17 +238,17 @@ public final class DataRepository {
         System.out.println("DataRepository: write to file = \"" + filename + "\"");
         try {
             PrintWriter fstr = new PrintWriter(new BufferedWriter(new FileWriter(file, false)));
-            fstr.printf("# some header information \n");
-            fstr.printf("# number of data elements: %d\n", data.size());
-            fstr.printf("# min and max intervals of datapoints: \n");
-            fstr.printf("# Location x: [%.2f, %.2f]m   = [%.2f, %.2f]km \n", xMin, xMax, xMin / 1000, xMax / 1000);
-            fstr.printf("# Time t    : [%.2f, %.2f]s   = [%.3f, %.3f]h \n", tMin, tMax, tMin / 3600, tMax / 3600);
-            fstr.printf("# Speed v   : [%.3f, %.3f]m/s = [%.2f, %.2f]km/h \n", vMin, vMax, vMin * 3.6, vMax * 3.6);
-            fstr.printf("# Flow q    : [%.5f, %.5f]/s  = [%.2f, %.2f]/h \n", flowMin, flowMax, 3600 * flowMin,
+            fstr.printf("# some header information %n");
+            fstr.printf("# number of data elements: %d%n", data.size());
+            fstr.printf("# min and max intervals of datapoints: %n");
+            fstr.printf("# Location x: [%.2f, %.2f]m   = [%.2f, %.2f]km %n", xMin, xMax, xMin / 1000, xMax / 1000);
+            fstr.printf("# Time t    : [%.2f, %.2f]s   = [%.3f, %.3f]h %n", tMin, tMax, tMin / 3600, tMax / 3600);
+            fstr.printf("# Speed v   : [%.3f, %.3f]m/s = [%.2f, %.2f]km/h %n", vMin, vMax, vMin * 3.6, vMax * 3.6);
+            fstr.printf("# Flow q    : [%.5f, %.5f]/s  = [%.2f, %.2f]/h %n", flowMin, flowMax, 3600 * flowMin,
                     3600 * flowMax);
-            fstr.printf("# Density r : [%.5f, %.5f]/m  = [%.2f, %.2f]/km \n", rhoMin, rhoMax, 1000 * rhoMin,
+            fstr.printf("# Density r : [%.5f, %.5f]/m  = [%.2f, %.2f]/km %n", rhoMin, rhoMax, 1000 * rhoMin,
                     1000 * rhoMax);
-            fstr.printf("# Occupancy : [%.5f, %.5f]    \n", occMin, occMax);
+            fstr.printf("# Occupancy : [%.5f, %.5f]    %n", occMin, occMax);
 
             writeHeaderString(fstr);
             for (Datapoint dp : data) {
@@ -264,13 +264,13 @@ public final class DataRepository {
 
     private void writeHeaderString(PrintWriter writer) {
         if (writer != null) {
-            writer.printf("# position[m]  time[s]  speed[m/s]  flow[1/s]  density[1/m]  weight[1]  occupancy[1]  time[hh:mm:ss]\n");
+            writer.printf("# position[m]  time[s]  speed[m/s]  flow[1/s]  density[1/m]  weight[1]  occupancy[1]  time[hh:mm:ss]%n");
         }
     }
 
     private void writeDataPoint(Datapoint dp, PrintWriter writer) {
         if (writer != null) {
-            writer.printf("%.2f  %.2f  %.2f  %.5e  %.5e  %.5e  %.5e   %s\n", dp.x(), dp.t(), dp.v(), dp.q(), dp.rho(),
+            writer.printf("%.2f  %.2f  %.2f  %.5e  %.5e  %.5e  %.5e   %s%n", dp.x(), dp.t(), dp.v(), dp.q(), dp.rho(),
                     dp.weight(), dp.occ(), FormatUtils.getFormatedTime(dp.t()));
         }
     }

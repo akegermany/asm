@@ -8,7 +8,7 @@ import de.akesting.autogen.Filter;
 
 class DataFilter {
 
-    private final static long SEED = 42; // <0: not defined seed
+    private static final long SEED = 42; // <0: not defined seed
 
     private Random rand = null;
 
@@ -44,11 +44,11 @@ class DataFilter {
         return false;
     }
 
-    private final boolean sortOutRandomly() {
+    private boolean sortOutRandomly() {
         if (rand == null) {
             return false;
         }
-        return (rand.nextDouble() <= filterConfiguration.getDropDataRel());
+        return rand.nextDouble() <= filterConfiguration.getDropDataRel();
     }
 
 }

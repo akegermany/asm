@@ -73,7 +73,7 @@ public class TimeSeries {
             fstr.close();
         } catch (java.io.IOException e) {
             System.err.println("Error  " + "Cannot open file " + filename);
-            e.printStackTrace();
+            System.err.println(e);
         }
 
     }

@@ -15,51 +15,39 @@ import org.slf4j.LoggerFactory;
 
 public final class FileUtils {
 
-    /** The Constant logger. */
-    private final static Logger Logger = LoggerFactory.getLogger(FileUtils.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FileUtils.class);
 
     public static PrintWriter getWriter(String filename) {
         try {
-            PrintWriter fstr = new PrintWriter(new BufferedWriter(new FileWriter(filename, false)));
-            return fstr;
+            return new PrintWriter(new BufferedWriter(new FileWriter(filename, false)));
         } catch (java.io.IOException e) {
-            e.printStackTrace();
-            Logger.error("Cannot open file ={}", filename);
+            LOG.error("Cannot open file={}", filename);
         }
         return null;
     }
 
     public static BufferedReader getReader(String filename) {
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(filename));
-            return reader;
+            return new BufferedReader(new FileReader(filename));
         } catch (Exception e) {
-            e.printStackTrace();
-            Logger.error("Cannot open file={} ", filename);
+            LOG.error("Cannot open file={} ", filename);
+            LOG.error("error: ", e);
         }
         return null;
     }
 
     public static String homeDirectory() {
-        String home = System.getProperty("user.home");
-        return home;
+        return System.getProperty("user.home");
     }
 
-    // check for existing file
-    public static boolean fileExists(String filename, String msg) {
+    public static boolean fileExists(String filename) {
         File file = new File(filename);
-        if (file.exists() && file.isFile()) {
-            return (true);
-        }
-        return (false);
+        return file.exists() && file.isFile();
     }
 
-    public static boolean dirExists(String path, String msg) {
+    public static boolean dirExists(String path) {
         File file = new File(path);
-        if (file.exists() && file.isDirectory()) {
-            return (true);
-        }
-        return (false);
+        return file.exists() && file.isDirectory();
     }
 
     // delete existing file
@@ -94,7 +82,7 @@ public final class FileUtils {
     }
 
     public static void deleteDir(String dirName) {
-        if (!dirExists(dirName, "FileUtils...deleteDir...")) {
+        if (!dirExists(dirName)) {
             return;
         }
         File dir = new File(dirName);
@@ -150,9 +138,11 @@ public final class FileUtils {
 
     public static void deleteFileList(String path, String regex) {
         String[] file = getFileList(path, regex);
-        for (int i = 0; i < file.length; i++) {
-            // System.out.println("********* test = "+file[i]);
-            deleteFile(file[i], "deleteFileList with regex = " + regex);
+        if (file != null) {
+            for (int i = 0; i < file.length; i++) {
+                // System.out.println("********* test = "+file[i]);
+                deleteFile(file[i], "deleteFileList with regex = " + regex);
+            }
         }
     }
 

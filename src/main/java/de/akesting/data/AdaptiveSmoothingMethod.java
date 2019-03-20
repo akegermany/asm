@@ -211,8 +211,9 @@ public class AdaptiveSmoothingMethod {
         double x = 0.5 * (grid.xEnd() - grid.xStart());
         double t = 0.5 * (grid.tEnd() - grid.tStart());
 
+        PrintWriter fstr = null;
         try {
-            PrintWriter fstr = new PrintWriter(new BufferedWriter(new FileWriter(filename, false)));
+            fstr = new PrintWriter(new BufferedWriter(new FileWriter(filename, false)));
             // header information for data:
             fstr.printf("# x[km]  t[h]  phi_free  phi_cong %n");
             for (int ix = 0; ix < grid.ndx(); ix++) {
@@ -225,10 +226,13 @@ public class AdaptiveSmoothingMethod {
                 }
                 fstr.printf("%n"); // block ends
             }
-            fstr.close();
         } catch (java.io.IOException e) {
             System.err.println("Error  " + "Cannot open file " + filename);
             e.printStackTrace();
+        } finally {
+            if (fstr != null) {
+                fstr.close();
+            }
         }
         System.out.println(" ASM Kerneltest finished...");
     }

@@ -12,9 +12,9 @@ import de.akesting.utils.FormatUtils;
 
 public class TrajectoryIntegration {
 
-    private static final String fileEnding = ".gfcd_";
+    private static final String FILE_ENDING = ".gfcd_";
 
-    private static final String fileEndingFC = ".gfcd_indiv_";
+    private static final String FILE_ENDING_FC = ".gfcd_indiv_";
 
     private final String basename;
 
@@ -27,7 +27,7 @@ public class TrajectoryIntegration {
         this.grid = Preconditions.checkNotNull(grid);
         this.basename = config.isSetBaseFilename() ? config.getBaseFilename() : defaultBasename;
 
-        FileUtils.deleteFileList(".", basename + fileEnding + "\\d*");
+        FileUtils.deleteFileList(".", basename + FILE_ENDING + "\\d*");
 
         if (config.isSetDn()) {
             calcTrajectories(config.getDn());
@@ -37,7 +37,7 @@ public class TrajectoryIntegration {
         if (config.isSetFloatingCar()) {
             for (int i = 0; i < config.getFloatingCar().size(); i++) {
                 FloatingCar fc = config.getFloatingCar().get(i);
-                String filename = basename + fileEndingFC + String.valueOf(i + 1);
+                String filename = basename + FILE_ENDING_FC + String.valueOf(i + 1);
                 double xStart = grid.isReverseDirection() ? grid.xEndGrid() : grid.xStartGrid();
                 if (fc.isSetStartXKm()) {
                     xStart = 1000 * fc.getStartXKm();
@@ -49,14 +49,14 @@ public class TrajectoryIntegration {
     }
 
     private void calcTrajectories(int nTraj) {
-        double SMALL_VAL = 1;
+        double smallVal = 1;
         double t1 = grid.tStart();
-        double t2 = grid.tEndGrid() - integrateTrajBackwards(grid.tEndGrid()) - SMALL_VAL;
+        double t2 = grid.tEndGrid() - integrateTrajBackwards(grid.tEndGrid()) - smallVal;
         double deltaT = (int) ((t2 - t1) / nTraj);
         System.out.printf(" Interval for trajectories: [%.2f, %.2f]h  --> deltaT=%.2fmin%n", t1 / 3600, t2 / 3600,
                 deltaT / 60);
         for (int i = 0; i < nTraj; i++) {
-            String filename = basename + fileEnding + String.valueOf(i + 1);
+            String filename = basename + FILE_ENDING + String.valueOf(i + 1);
             double xStart = grid.isReverseDirection() ? grid.xEndGrid() : grid.xStartGrid();
             writeTrajectory(filename, t1 + i * deltaT, xStart);
         }
