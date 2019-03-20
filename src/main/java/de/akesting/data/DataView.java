@@ -5,7 +5,10 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 
+import com.google.common.base.Stopwatch;
 import de.akesting.autogen.VirtualGrid;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class DataView {
 
@@ -15,34 +18,34 @@ public final class DataView {
     private double dx;
     private double dt;
 
-    private DataRepository dataRep;
+    private final DataRepository dataRep;
 
     private final VirtualGrid virtualGridConfig;
 
     private List<Datapoint>[][] griddedData; // matrix of list [x][t]
 
-    public boolean withFlow() {
+    boolean withFlow() {
         return dataRep.withFlow();
     }
 
-    public boolean withDensity() {
+    boolean withDensity() {
         return dataRep.withDensity();
     }
 
-    public boolean withOccupancy() {
+    boolean withOccupancy() {
         return dataRep.withOccupancy();
     }
 
     public DataView(VirtualGrid virtualGrid, DataRepository dataRep) {
-        virtualGridConfig = Preconditions.checkNotNull(virtualGrid);
-        this.dataRep = Preconditions.checkNotNull(dataRep);
+        virtualGridConfig = checkNotNull(virtualGrid);
+        this.dataRep = checkNotNull(dataRep);
     }
 
-    public boolean withVirtualGrid() {
+    boolean withVirtualGrid() {
         return virtualGridConfig.isSetNDtCutoff() && virtualGridConfig.isSetNDxCutoff();
     }
 
-    public List<Datapoint> getData(double x0, double t0) {
+    List<Datapoint> getData(double x0, double t0) {
         if (!withVirtualGrid() || (nx == 1 && nt == 1)) {
             return dataRep.data();
         }
@@ -51,7 +54,7 @@ public final class DataView {
 
         // System.out.printf("x0=%.3fkm, t0=%.3fh --> ix=%d, it=%d (nx=%d, nt=%d) %n", x0, t0, indexX0, indexT0, nx, nt);
 
-        ArrayList<Datapoint> list = new ArrayList<Datapoint>();
+        List<Datapoint> list = new ArrayList<>();
         int nNeigbors = 1;
         do {
             if (nNeigbors > 1) {
@@ -80,20 +83,22 @@ public final class DataView {
         // if(ret)System.out.printf("isAvailable: nx=%d, nt=%d:  ix=%d, it=%d : %s %n", nx, nt, ix, it, (ret)? "true":"false");
     }
 
-    public boolean isReverseDirection() {
+    boolean isReverseDirection() {
         return dataRep.isReverseDirection();
     }
 
-    public int nDatapoints() {
+    int nDatapoints() {
         return dataRep.data().size();
     }
 
-    public void generateGriddedData(double dxSmooth, double dtSmooth) {
+    void generateGriddedData(double dxSmooth, double dtSmooth) {
         if (!withVirtualGrid()) {
             nx = nt = 1;
             System.out.printf("######### no virtual grid ########%n");
             return;
         }
+
+        Stopwatch stopwatch = Stopwatch.createStarted();
         this.dx = dxSmooth * virtualGridConfig.getNDxCutoff();
         this.dt = dtSmooth * virtualGridConfig.getNDtCutoff();
         this.nx = Math.max(1, (int) ((dataRep.xMax() - dataRep.xMin()) / dx));
@@ -106,13 +111,15 @@ public final class DataView {
         griddedData = new ArrayList[nx][nt];
         for (int i = 0; i < nx; i++) {
             for (int j = 0; j < nt; j++) {
-                griddedData[i][j] = new ArrayList<Datapoint>();
+                griddedData[i][j] = new ArrayList<>();
             }
         }
 
         for (Datapoint dp : dataRep.data()) {
             griddedData[indexX(dp.x())][indexT(dp.t())].add(dp);
         }
+
+        System.out.println("gridded data view took " + stopwatch);
         // showGriddedData();
     }
 

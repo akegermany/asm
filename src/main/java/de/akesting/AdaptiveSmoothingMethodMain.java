@@ -11,15 +11,16 @@ import de.akesting.output.TrajectoryIntegration;
 import de.akesting.xml.XmlInputLoader;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Locale;
 
 public class AdaptiveSmoothingMethodMain {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         new AdaptiveSmoothingMethodMain().run(args);
     }
 
-    public void run(String[] args) {
+    public void run(String[] args) throws IOException {
         // set the default locale
         Locale.setDefault(Locale.US);
 
@@ -36,11 +37,11 @@ public class AdaptiveSmoothingMethodMain {
     }
 
     // Apply ASM with defaultOutputName
-    private void applyAsm(ReadCommandline cmdLine, AdaptiveSmoothingMethodProject inputData, DataRepository dataRep) {
+    private void applyAsm(ReadCommandline cmdLine, AdaptiveSmoothingMethodProject inputData, DataRepository dataRep) throws IOException {
         applyAsm(cmdLine, inputData, dataRep, cmdLine.defaultOutFilename());
     }
 
-    private void applyAsm(ReadCommandline cmdLine, AdaptiveSmoothingMethodProject inputData, DataRepository dataRep, String outFileName) {
+    private void applyAsm(ReadCommandline cmdLine, AdaptiveSmoothingMethodProject inputData, DataRepository dataRep, String outFileName) throws IOException {
         DataView dataView = new DataView(inputData.getVirtualGrid(), dataRep);
 
         // TODO handling of many California freeways in batch

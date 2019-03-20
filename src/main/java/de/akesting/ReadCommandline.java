@@ -27,7 +27,7 @@ public final class ReadCommandline {
         return workingDirectory;
     }
 
-    // TODO Reset old defaultOutFilename function [SM]
+    // TODO also allow for .gz
     public String defaultOutFilename() {
         String f = filename.substring(0, filename.lastIndexOf('.'));
         f += ".out";

@@ -1,14 +1,9 @@
 package de.akesting.utils;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.FilenameFilter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPOutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,13 +12,12 @@ public final class FileUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(FileUtils.class);
 
-    public static PrintWriter getWriter(String filename) {
-        try {
-            return new PrintWriter(new BufferedWriter(new FileWriter(filename, false)));
-        } catch (java.io.IOException e) {
-            LOG.error("Cannot open file={}", filename);
+    public static Writer getWriter(String filename) throws IOException {
+        if (filename.endsWith(".gz")) {
+            File file = new File(filename);
+            return new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(file)), "UTF-8");
         }
-        return null;
+        return new PrintWriter(new BufferedWriter(new FileWriter(filename, false)));
     }
 
     public static BufferedReader getReader(String filename) {

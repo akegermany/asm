@@ -165,7 +165,7 @@ class DataReader {
         Datapoint dp = new Datapoint();
         dp.set_weight(weight);
         dp.set_x(position);
-        String[] line = scanner.nextLine().split(";"); // TODO config
+        String[] line = scanner.nextLine().split(","); // TODO config
         if (!line[0].startsWith("#") && (line.length >= 2)) {
             parseLine(line, dp);
         }

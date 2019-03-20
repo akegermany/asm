@@ -1,9 +1,6 @@
 package de.akesting.data;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +36,7 @@ public final class DataRepository {
     private String absolutePath;
 
     private String filenameFilter;
-    private PrintWriter fstrFilter = null;
+    private Writer fstrFilter = null;
 
     private boolean isReverseDirection = false;
 
@@ -51,19 +48,19 @@ public final class DataRepository {
         this.isReverseDirection = value;
     }
 
-    private ArrayList<Datapoint> data = new ArrayList<Datapoint>();
+    private List<Datapoint> data = new ArrayList<>();
 
     public List<Datapoint> data() {
         return data;
     }
 
-    private ArrayList<Element> elemDataList = new ArrayList<Element>();
+    private List<Element> elemDataList = new ArrayList<>();
 
     public int elementListSize() {
         return elemDataList.size();
     }
 
-    public DataRepository(String outFilename, String outFilenameFilter, Input input, String path) {
+    public DataRepository(String outFilename, String outFilenameFilter, Input input, String path) throws IOException {
         initialize();
 
         this.isReverseDirection = input.isReverseDirection();
@@ -152,21 +149,21 @@ public final class DataRepository {
         System.out.printf(" *  data.size() = %d *************** %n", data.size());
         System.out.printf("    xMin= %.2fm=%.2f km, xMax=%.2fm=%.2fkm%n", xMin, xMin / 1000., xMax, xMax / 1000.);
         System.out.printf("    tMin= %.2fs=%.2f h=%s, tMax=%.2fs=%.2fh=%s%n", tMin, tMin / 3600.,
-                FormatUtils.getFormatedTime(tMin), tMax, tMax / 3600., FormatUtils.getFormatedTime(tMax));
+                FormatUtils.getFormattedTime(tMin), tMax, tMax / 3600., FormatUtils.getFormattedTime(tMax));
         System.out.printf("    speedMin= %.2fkm/h, speedMax=%.2fkm/h%n", vMin * 3.6, vMax * 3.6);
         System.out.printf("    flowMin= %.2f/h, flowMax=%.2f/h%n", flowMin / 3600, flowMax / 3600);
         System.out.printf("    densityMin= %.2f/km, densityMax=%.2f/km%n", rhoMin / 1000, rhoMax / 1000);
         System.out.printf("    occupancyMin= %.5f, occupancyMax=%.5f%n", occMin, occMax);
     }
 
-    private void readData(Input input) {
+    private void readData(Input input) throws IOException {
         for (Dataset dataset : input.getDataset()) {
             elemDataList.clear();
             readSet(dataset);
         }
     }
 
-    private void readSet(Dataset dataset) {
+    private void readSet(Dataset dataset) throws IOException {
         System.out.println("  *************** DataRepository: readSet ... *************");
         // DataFormat dataFormat = new DataFormat(dataset.getFormat());
         // System.out.println("No element \"" + XmlElements.FormatElem + "\" given... expect single data points ..");
@@ -193,12 +190,7 @@ public final class DataRepository {
         }
     }
 
-    // for California data
-    public boolean addDataPoint(Datapoint dp) {
-        return addDataPoint(dp, null, null);
-    }
-
-    private boolean addDataPoint(Datapoint dp, DataRandomizer dataRandomizer, DataFilter filter) {
+    private boolean addDataPoint(Datapoint dp, DataRandomizer dataRandomizer, DataFilter filter) throws IOException {
         if ((!dp.isValid())) {
             // System.out.print("dp not valid: ");
             // dp.print();
@@ -262,16 +254,16 @@ public final class DataRepository {
         }
     }
 
-    private void writeHeaderString(PrintWriter writer) {
+    private void writeHeaderString(Writer writer) throws IOException {
         if (writer != null) {
-            writer.printf("# position[m]  time[s]  speed[m/s]  flow[1/s]  density[1/m]  weight[1]  occupancy[1]  time[hh:mm:ss]%n");
+            writer.write(String.format(String.format("# position[m]  time[s]  speed[m/s]  flow[1/s]  density[1/m]  weight[1]  occupancy[1]  time[hh:mm:ss]%n")));
         }
     }
 
-    private void writeDataPoint(Datapoint dp, PrintWriter writer) {
+    private void writeDataPoint(Datapoint dp, Writer writer) throws IOException {
         if (writer != null) {
-            writer.printf("%.2f  %.2f  %.2f  %.5e  %.5e  %.5e  %.5e   %s%n", dp.x(), dp.t(), dp.v(), dp.q(), dp.rho(),
-                    dp.weight(), dp.occ(), FormatUtils.getFormatedTime(dp.t()));
+            writer.write(String.format("%.2f  %.2f  %.2f  %.5e  %.5e  %.5e  %.5e   %s%n", dp.x(), dp.t(), dp.v(), dp.q(), dp.rho(),
+                    dp.weight(), dp.occ(), FormatUtils.getFormattedTime(dp.t())));
         }
     }
 

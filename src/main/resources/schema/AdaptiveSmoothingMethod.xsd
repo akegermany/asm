@@ -143,7 +143,7 @@
         <xs:complexType>
             <xs:attribute name="filename" type="xs:string" use="required"/>
             <xs:attribute name="alternative_path" type="xs:string" default=""/>
-            <xs:attribute name="pos_km" type="nonNegativeDouble" use="required"/>
+            <xs:attribute name="pos_km" type="nonNegativeDouble" /> <!-- optional for FCD -->
         </xs:complexType>
     </xs:element>
     <xs:element name="SingleData">
@@ -176,7 +176,7 @@
             <xs:attribute name="t_start_h" type="nonNegativeDouble"/>
             <xs:attribute name="t_end_h" type="nonNegativeDouble"/>
             <xs:attribute name="filename" type="xs:string"/>
-            <xs:attribute name="with_output" type="xs:boolean" default="true"/>
+            <xs:attribute name="with_output" type="xs:boolean" default="false"/>
         </xs:complexType>
     </xs:element>
     <xs:element name="Trajectories">

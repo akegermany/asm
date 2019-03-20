@@ -5,11 +5,17 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
 
+import com.google.common.base.Stopwatch;
 import de.akesting.autogen.ParameterASM;
 import de.akesting.output.OutputGrid;
+import org.apache.commons.math3.util.FastMath;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class AdaptiveSmoothingMethod {
 
@@ -19,11 +25,15 @@ public class AdaptiveSmoothingMethod {
 
     private double drivingDir = 1;
 
+    private OutputGrid grid;
+
+    private DataView view;
+
     public AdaptiveSmoothingMethod(ParameterASM parameterASM) {
-        this.parameter = Preconditions.checkNotNull(parameterASM);
-        Preconditions.checkArgument(Math.abs(parameterASM.getVgFreeKmh()) > 0.000001,
+        this.parameter = checkNotNull(parameterASM);
+        checkArgument(Math.abs(parameterASM.getVgFreeKmh()) > 0.000001,
                 "vgFree is near zero (devision not defined)");
-        Preconditions.checkArgument(Math.abs(parameterASM.getVgCongKmh()) > 0.000001,
+        checkArgument(Math.abs(parameterASM.getVgCongKmh()) > 0.000001,
                 "vgCong is near zero (devision not defined)");
     }
 
@@ -46,20 +56,26 @@ public class AdaptiveSmoothingMethod {
     }
 
     public void doSmoothing(DataView view, OutputGrid grid) {
+        this.view = checkNotNull(view);
+        this.grid = checkNotNull(grid);
 
         view.generateGriddedData(parameter.getDxSmooth(), parameter.getDtSmooth());
-
-        final boolean withFlow = view.withFlow();
-        final boolean withDensity = view.withDensity();
-        final boolean withOccupancy = view.withOccupancy();
 
         System.out.println("ASM ... doSmoothing ");
 
         this.drivingDir = (view.isReverseDirection()) ? -1 : 1;
 
-        // profiling
-        long time1 = System.currentTimeMillis();
+        Stopwatch stopwatch = Stopwatch.createStarted();
 
+        calculateGrid();
+        calculateWeights();
+        calculateQuantities();
+
+        System.out.println("**** Profiling: Time for whole loop took " + stopwatch);
+    }
+
+    private void calculateGrid() {
+        Stopwatch stopwatch = Stopwatch.createStarted();
         double minNormFree = 1e10; // init
         double minNormCong = 1e10; // init
 
@@ -99,19 +115,19 @@ public class AdaptiveSmoothingMethod {
                     normCong += phiCong;
                     vCong += phiCong * v;
 
-                    if (withFlow) {
+                    if (view.withFlow()) {
                         double flow = dp.q();
                         flowFree += phiFree * flow;
                         flowCong += phiCong * flow;
                     }
 
-                    if (withDensity) {
+                    if (view.withDensity()) {
                         double rho = dp.rho();
                         rhoFree += phiFree * rho;
                         rhoCong += phiCong * rho;
                     }
 
-                    if (withOccupancy) {
+                    if (view.withOccupancy()) {
                         double occ = dp.occ();
                         occFree += phiFree * occ;
                         occCong += phiCong * occ;
@@ -122,17 +138,17 @@ public class AdaptiveSmoothingMethod {
                 grid.vFree.set(ix, it, (normFree == 0) ? 0 : vFree / normFree);
                 grid.vCong.set(ix, it, (normCong == 0) ? 0 : vCong / normCong);
 
-                if (withFlow) {
+                if (view.withFlow()) {
                     grid.flowFree.set(ix, it, (normFree == 0) ? 0 : flowFree / normFree);
                     grid.flowCong.set(ix, it, (normCong == 0) ? 0 : flowCong / normCong);
                 }
 
-                if (withDensity) {
+                if (view.withDensity()) {
                     grid.rhoFree.set(ix, it, (normFree == 0) ? 0 : rhoFree / normFree);
                     grid.rhoCong.set(ix, it, (normCong == 0) ? 0 : rhoCong / normCong);
                 }
 
-                if (withOccupancy) {
+                if (view.withOccupancy()) {
                     grid.occFree.set(ix, it, (normFree == 0) ? 0 : occFree / normFree);
                     grid.occCong.set(ix, it, (normCong == 0) ? 0 : occCong / normCong);
                 }
@@ -154,6 +170,11 @@ public class AdaptiveSmoothingMethod {
                             CRIT_NORM_THRESHOLD);
         }
 
+        System.out.println("calculate grid data took " + stopwatch);
+    }
+
+    private void calculateWeights() {
+        Stopwatch stopwatch = Stopwatch.createStarted();
         // (3) calculate weights w --> matrix
         final double vc = parameter.getVcKmh() / 3.6;
         final double dvc = parameter.getDvcKmh() / 3.6;
@@ -164,36 +185,43 @@ public class AdaptiveSmoothingMethod {
                 double vDecide = Math.min(vCong, vFree);
                 if (grid.normCong.get(ix, it) == 0)
                     vDecide = vFree;
-                double w = Math.max(0, Math.min(1, 0.5 * (1. + Math.tanh((vc - vDecide) / dvc))));
+                double w = Math.max(0, Math.min(1, 0.5 * (1. + tanh((vc - vDecide) / dvc))));
                 grid.weight.set(ix, it, w);
             }
         }
+        System.out.println("calculate weights took " + stopwatch);
+    }
 
+
+    private void calculateQuantities() {
+        Stopwatch stopwatch = Stopwatch.createStarted();
         // (4) calc results (for speed only at this stage)
         for (int ix = 0; ix < grid.ndx(); ix++) {
             for (int it = 0; it < grid.ndt(); it++) {
                 double w = grid.weight.get(ix, it);
                 double result = w * grid.vCong.get(ix, it) + (1 - w) * grid.vFree.get(ix, it);
                 grid.vOut.set(ix, it, result);
-                if (withFlow) {
+                if (view.withFlow()) {
                     grid.flowOut.set(ix, it, w * grid.flowCong.get(ix, it) + (1 - w) * grid.flowFree.get(ix, it));
                 }
-                if (withDensity) {
+                if (view.withDensity()) {
                     grid.rhoOut.set(ix, it, w * grid.rhoCong.get(ix, it) + (1 - w) * grid.rhoFree.get(ix, it));
                 }
-                if (withOccupancy) {
+                if (view.withOccupancy()) {
                     grid.occOut.set(ix, it, w * grid.occCong.get(ix, it) + (1 - w) * grid.occFree.get(ix, it));
                 }
-                // testweise:
+                // testwise:
                 double normResult = w * grid.normCong.get(ix, it) + (1 - w) * grid.normFree.get(ix, it);
                 grid.normFree.set(ix, it, normResult);
             }
         }
-        final double time2 = System.currentTimeMillis();
-        final double loopTime = (time2 - time1) / 1000.;
-        System.out.printf("**** Profiling: Time for whole loop : %10.3f seconds %n", loopTime);
-        System.out.printf("**** Profiling: Time for whole loop per 1000 data points : %10.3f seconds %n", 1000
-                * loopTime / view.nDatapoints());
+
+        System.out.println("calculate quantities took " + stopwatch);
+    }
+
+    private double tanh(double x) {
+        return FastMath.tanh(x);
+        // return Math.tanh(x);
     }
 
     private double vgFree() {

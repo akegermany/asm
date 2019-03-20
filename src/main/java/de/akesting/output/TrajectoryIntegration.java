@@ -1,6 +1,8 @@
 package de.akesting.output;
 
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.Locale;
 
 import com.google.common.base.Preconditions;
@@ -22,7 +24,7 @@ public class TrajectoryIntegration {
 
     private final Trajectories config;
 
-    public TrajectoryIntegration(String defaultBasename, Trajectories config, OutputGrid grid) {
+    public TrajectoryIntegration(String defaultBasename, Trajectories config, OutputGrid grid) throws IOException {
         this.config = Preconditions.checkNotNull(config);
         this.grid = Preconditions.checkNotNull(grid);
         this.basename = config.isSetBaseFilename() ? config.getBaseFilename() : defaultBasename;
@@ -48,7 +50,7 @@ public class TrajectoryIntegration {
         }
     }
 
-    private void calcTrajectories(int nTraj) {
+    private void calcTrajectories(int nTraj) throws IOException {
         double smallVal = 1;
         double t1 = grid.tStart();
         double t2 = grid.tEndGrid() - integrateTrajBackwards(grid.tEndGrid()) - smallVal;
@@ -85,12 +87,12 @@ public class TrajectoryIntegration {
         return ((isReverse) ? (x <= grid.xStartGrid()) : (x >= grid.xEndGrid()));
     }
 
-    private void writeTrajectory(String filename, double tStartTraj, double xStart) {
+    private void writeTrajectory(String filename, double tStartTraj, double xStart) throws IOException {
         System.out.println("writeTrajectory: filename=\"" + filename + "\", starttime =" + tStartTraj);
-        PrintWriter fstr = FileUtils.getWriter(filename);
-        fstr.printf(Locale.US, "# integrated trajectory from GASM velocity field ! %n");
-        fstr.printf(Locale.US, "# t[s]  x[m]  v[m/s]  t(hh:mm:ss) ");
-        fstr.printf("%n");
+        Writer fstr = FileUtils.getWriter(filename);
+        fstr.write(String.format(Locale.US, "# integrated trajectory from GASM velocity field ! %n"));
+        fstr.write(String.format(Locale.US, "# t[s]  x[m]  v[m/s]  t(hh:mm:ss) "));
+        fstr.write(String.format("%n"));
         // main loop:
         double t = tStartTraj;
         double x = xStart; // (isReverseDirection)? grid.xEndGrid() : grid.xStartGrid();
@@ -101,12 +103,12 @@ public class TrajectoryIntegration {
                 break;
             v = grid.getSpeedResult(x, t);
             // / v = effectiveSpeed(v); // !!!! TODO !!! Noch keine Parameter, nicht quantiativ getestet !!!
-            fstr.printf(Locale.US, " %f  %f  %f  %s ", t, x, v, FormatUtils.getFormatedTime(t));
+            fstr.write(String.format(Locale.US, " %f  %f  %f  %s ", t, x, v, FormatUtils.getFormattedTime(t)));
             // integration
             dx = v * config.getDt();
             x += grid.isReverseDirection() ? -dx : dx;
             t += config.getDtOut();
-            fstr.printf("%n");
+            fstr.write(String.format("%n"));
         }
         fstr.close();
     }

@@ -52,7 +52,7 @@ public class TimeSeries {
                 double vASM = grid.getSpeedResult(x, t);
                 double weight = grid.getWeightResult(x, t);
                 fstr.printf(Locale.US, "%8.6f  %7.4f  %s  %7.6f", t / 3600., vASM * 3.6,
-                        FormatUtils.getFormatedTime(t), weight);
+                        FormatUtils.getFormattedTime(t), weight);
 
                 if (grid.withFlow()) {
                     double flow = grid.getFlowResult(x, t);

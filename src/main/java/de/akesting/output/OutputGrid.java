@@ -1,16 +1,21 @@
 package de.akesting.output;
 
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.Locale;
 
 import Jama.Matrix;
 
 import com.google.common.base.Preconditions;
 
+import com.google.common.base.Stopwatch;
 import de.akesting.autogen.SpatioTemporalContour;
 import de.akesting.data.DataRepository;
 import de.akesting.utils.FileUtils;
 import de.akesting.utils.FormatUtils;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class OutputGrid {
 
@@ -59,8 +64,8 @@ public final class OutputGrid {
 
     public OutputGrid(String defaultFilename, SpatioTemporalContour spatioTemporalContour, DataRepository dataRep) {
         Preconditions.checkArgument(defaultFilename != null && !defaultFilename.isEmpty());
-        Preconditions.checkNotNull(spatioTemporalContour);
-        Preconditions.checkNotNull(dataRep);
+        checkNotNull(spatioTemporalContour);
+        checkNotNull(dataRep);
 
         Locale.setDefault(Locale.US);
 
@@ -152,103 +157,93 @@ public final class OutputGrid {
         normCong = new Matrix(nDxOut, nDtOut, 0);
     }
 
-    public void write(DataRepository dataRep) {
+    public void write(DataRepository dataRep) throws IOException {
+        Locale.setDefault(Locale.US);
+
+        Stopwatch stopwatch = Stopwatch.createStarted();
         System.out.print("OutputGrid: write to file = \"" + filename + "\" ....  ");
-        PrintWriter fstr = FileUtils.getWriter(filename);
+        Writer fstr = checkNotNull(FileUtils.getWriter(filename));
+
         // header information for data:
-        fstr.printf("# number of data elements: %d%n", dataRep.elementListSize());
-        fstr.printf("# is reverse driving direction: %b%n", isReverseDirection);
-        fstr.printf("# min and max intervals of datapoints: %n");
-        fstr.printf(Locale.US, "# Space x : [%.2f, %.2f]m = [%.2f, %.2f]km %n", dataRep.xMin(), dataRep.xMax(),
-                dataRep.xMin() / 1000, dataRep.xMax() / 1000);
-        fstr.printf(Locale.US, "# Time t  : [%.2f, %.2f]s = [%.3f, %.3f]h %n", dataRep.tMin(), dataRep.tMax(),
-                dataRep.tMin() / 3600, dataRep.tMax() / 3600);
-        fstr.printf(Locale.US, "# Speed v   : [%.3f, %.3f]m/s = [%.2f, %.2f]km/h %n", dataRep.vMin(), dataRep.vMax(),
-                dataRep.vMin() * 3.6, dataRep.vMax() * 3.6);
-        fstr.printf(Locale.US, "# Flow q    : [%.5f, %.5f]/s  = [%.2f, %.2f]/h %n", dataRep.flowMin(),
-                dataRep.flowMax(), 3600 * dataRep.flowMin(), 3600 * dataRep.flowMax());
-        fstr.printf(Locale.US, "# Density r : [%.5f, %.5f]/m  = [%.2f, %.2f]/km %n", dataRep.rhoMin(),
-                dataRep.rhoMax(), 1000 * dataRep.rhoMin(), 1000 * dataRep.rhoMax());
-        fstr.printf(Locale.US, "# Occupancy : [%.5f, %.5f] %n", dataRep.occMin(), dataRep.occMax());
-        fstr.printf("# Units changed to SI system !!! Note that col 4 and 5 are for testing the ASM logic only%n");
-        fstr.flush();
-        fstr.printf(
-                Locale.US,
-                "# x[m]  t[s]  v[m/s]  [v_free[m/s]]  [v_cong[m/s]]  weight[1]  time[hh:mm:ss]  norm[1]   flow[1/s]  rho[1/m]  occupancy[1]%n");
+        fstr.write(String.format("# number of data elements: %d%n", dataRep.elementListSize()));
+        fstr.write(String.format("# is reverse driving direction: %b%n", isReverseDirection));
+        fstr.write(String.format("# min and max intervals of datapoints: %n"));
+        fstr.write(String.format("# Space x : [%.2f, %.2f]m = [%.2f, %.2f]km %n", dataRep.xMin(), dataRep.xMax(),
+                dataRep.xMin() / 1000, dataRep.xMax() / 1000));
+        fstr.write(String.format("# Time t  : [%.2f, %.2f]s = [%.3f, %.3f]h %n", dataRep.tMin(), dataRep.tMax(),
+                dataRep.tMin() / 3600, dataRep.tMax() / 3600));
+        fstr.write(String.format("# Speed v   : [%.3f, %.3f]m/s = [%.2f, %.2f]km/h %n", dataRep.vMin(), dataRep.vMax(),
+                dataRep.vMin() * 3.6, dataRep.vMax() * 3.6));
+        fstr.write(String.format("# Flow q    : [%.5f, %.5f]/s  = [%.2f, %.2f]/h %n", dataRep.flowMin(),
+                dataRep.flowMax(), 3600 * dataRep.flowMin(), 3600 * dataRep.flowMax()));
+        fstr.write(String.format("# Density r : [%.5f, %.5f]/m  = [%.2f, %.2f]/km %n", dataRep.rhoMin(),
+                dataRep.rhoMax(), 1000 * dataRep.rhoMin(), 1000 * dataRep.rhoMax()));
+        fstr.write(String.format("# Occupancy : [%.5f, %.5f] %n", dataRep.occMin(), dataRep.occMax()));
+        fstr.write(String.format("# Units changed to SI system !!! Note that col 4 and 5 are for testing the ASM logic only%n"));
+        fstr.write(String.format("# x[m]  t[s]  v[m/s]  [v_free[m/s]]  [v_cong[m/s]]  weight[1]  time[hh:mm:ss]  norm[1]"));
+        if (withFlow) {
+            fstr.write(String.format("  flow[1 / s]"));
+        }
+        if (withDensity()) {
+            fstr.write(String.format("   rho[1 / m]"));
+        }
+        if (withOccupancy()) {
+            fstr.write(String.format("  occupancy[1]"));
+        }
+        fstr.write(String.format("%n"));
+
         for (int ix = 0; ix < ndx(); ix++) {
             double x0 = position(ix);
             for (int it = 0; it < ndt(); it++) {
                 double t0 = time(it);
-                fstr.printf("%10.2f  %10.2f  %6.2f   %6.2f  %6.2f  %6.5f  %s  %7.5f ", x0, t0, vOut.get(ix, it),
+                fstr.write(String.format("%10.2f %10.1f %6.2f %6.2f %6.2f %6.5f %s %7.5f", x0, t0, vOut.get(ix, it),
                         vFree.get(ix, it), vCong.get(ix, it), weight.get(ix, it),
-                       FormatUtils.getFormatedTime(t0), normFree.get(ix, it));
-                double flow = (withFlow()) ? flowOut.get(ix, it) : 0;
-                fstr.printf("  %7.5f", flow);
-                double rho = (withDensity()) ? rhoOut.get(ix, it) : 0;
-                fstr.printf("  %7.6f", rho);
-                double occ = (withOccupancy()) ? occOut.get(ix, it) : 0;
-                fstr.printf("  %5.4f", occ);
-                fstr.printf("%n");
+                        FormatUtils.getFormattedTime(t0), normFree.get(ix, it)));
+                if (withFlow()) {
+                    fstr.write(String.format(" %7.5f", flowOut.get(ix, it)));
+                }
+                if (withDensity()) {
+                    fstr.write(String.format(" %7.6f", rhoOut.get(ix, it)));
+                }
+                if (withOccupancy()) {
+                    fstr.write(String.format(" %5.4f", occOut.get(ix, it)));
+                }
+                fstr.write(String.format("%n"));
             }
-            fstr.printf("%n"); // block ends
+            fstr.write(String.format("%n")); // block ends
         }
         fstr.close();
-        System.out.println(" done ");
+        System.out.println(" done in " + stopwatch);
     }
 
-    public void write(String filename) {
-        System.out.println("OutputGrid: write to file = \"" + filename + "\"");
-        PrintWriter fstr = FileUtils.getWriter(filename);
-        fstr.printf(
-                Locale.US,
-                "# x[m]  t[s]  v[m/s]  [v_free[m/s]]  [v_cong[m/s]]  weight[1]  time[hh:mm:ss]  norm[1]   flow[1/s]  rho[1/m]  occupancy[1]%n");
-        for (int ix = 0; ix < ndx(); ix++) {
-            double x0 = position(ix);
-            for (int it = 0; it < ndt(); it++) {
-                double t0 = time(it);
-                fstr.printf("%.10.2f  %10.2f  %6.2f   %6.2f  %6.2f  %6.5f  %s  %7.5f ", x0, t0, vOut.get(ix, it),
-                        vFree.get(ix, it), vCong.get(ix, it), weight.get(ix, it),
-                        de.akesting.utils.FormatUtils.getFormatedTime(t0), normFree.get(ix, it));
-                double flow = (withFlow()) ? flowOut.get(ix, it) : 0;
-                fstr.printf("  %7.5f", flow);
-                double rho = (withDensity()) ? rhoOut.get(ix, it) : 0;
-                fstr.printf("  %7.6f", rho);
-                double occ = (withOccupancy()) ? occOut.get(ix, it) : 0;
-                fstr.printf("  %5.4f", occ);
-                fstr.printf("%n");
-            }
-            fstr.printf("%n"); // block ends
-        }
-        fstr.close();
-    }
 
-    public double getSpeedResult(double x, double t) {
+    double getSpeedResult(double x, double t) {
         return interpolate(vOut, x, t);
     }
 
-    public double getFlowResult(double x, double t) {
+    double getFlowResult(double x, double t) {
         if (!withFlow)
             return 0;
         return interpolate(this.flowOut, x, t);
     }
 
-    public double getDensityResult(double x, double t) {
+    double getDensityResult(double x, double t) {
         if (!withRho)
             return 0;
         return interpolate(this.rhoOut, x, t);
     }
 
-    public double getOccupancyResult(double x, double t) {
+    double getOccupancyResult(double x, double t) {
         if (!withOcc)
             return 0;
         return interpolate(this.occOut, x, t);
     }
 
-    public double getWeightResult(double x, double t) {
+    double getWeightResult(double x, double t) {
         return interpolate(weight, x, t);
     }
 
-    public boolean isDataAvailable(double x, double t) {
+    boolean isDataAvailable(double x, double t) {
         // System.out.printf(" x=%f, t=%f, %b %n", x,t,(x>=xStart && x<=xEnd && t>=tStart && t<=tEnd) );
         // return( x>=xStart && x<=xEnd && t>=tStart && t<=tEnd );
         return (x >= xStart && x <= xEndGrid() && t >= tStart && t <= tEndGrid());
