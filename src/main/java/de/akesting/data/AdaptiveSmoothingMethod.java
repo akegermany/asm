@@ -27,18 +27,18 @@ public class AdaptiveSmoothingMethod {
                 "vgCong is near zero (devision not defined)");
     }
 
-    private final double phi(double x, double t) {
+    private double phi(double x, double t) {
         return phiX(x) * phiT(t);
     }
 
-    private final double phiX(double x) {
+    private double phiX(double x) {
         if (parameter.isWithTriangular()) {
             return Math.max(0, 1 - Math.abs(x) / parameter.getDxSmooth());
         }
         return Math.exp(-Math.abs(x / parameter.getDxSmooth()));
     }
 
-    private final double phiT(double t) {
+    private double phiT(double t) {
         if (parameter.isWithTriangular()) {
             return Math.max(0, 1 - Math.abs(t) / parameter.getDtSmooth());
         }
