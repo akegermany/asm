@@ -30,6 +30,7 @@ public final class ReadCommandline {
     // TODO also allow for .gz
     public String defaultOutFilename() {
         String f = filename.substring(0, filename.lastIndexOf('.'));
+        // f += ".out.gz";
         f += ".out";
         return f;
     }

@@ -59,8 +59,9 @@ public class AdaptiveSmoothingMethodMain {
         // Smoothing kernel: do calculations
         asmAlgo.doSmoothing(dataView, outputGrid);
 
-        if (outputGrid.withFileOutput())
+        if (outputGrid.withFileOutput()) {
             outputGrid.write(dataRep);
+        }
 
         if (inputData.getOutput().isSetTrajectories()) {
             new TrajectoryIntegration(outFileName, inputData.getOutput()
