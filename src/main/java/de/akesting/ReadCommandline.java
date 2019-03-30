@@ -13,8 +13,7 @@ import org.apache.commons.cli.PosixParser;
 public final class ReadCommandline {
 
     private static final String PROGRAM_NAME = "asm";
-    private static final String COPYRIGHT = "Copyright " + '\u00A9'
-            + " by Arne Kesting <mail@akesting.de>";
+    private static final String COPYRIGHT = "Copyright " + '\u00A9' + " by Arne Kesting <mail@akesting.de>";
 
     private String filename = "";
     private String workingDirectory = "";
@@ -73,7 +72,6 @@ public final class ReadCommandline {
         options = new Options();
         options.addOption("h", "help", false, "print this message");
         options.addOption("f", "file", true, "project (xml) file name ");
-        options.addOption("t", "numthreads", true, "number of worker threads ");
         options.addOption("a", "aggregation", true, "data aggregation ");
 
         parseAndInterrogate(args);

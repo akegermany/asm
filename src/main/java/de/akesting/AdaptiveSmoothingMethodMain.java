@@ -44,7 +44,7 @@ public class AdaptiveSmoothingMethodMain {
     private void applyAsm(ReadCommandline cmdLine, AdaptiveSmoothingMethodProject inputData, DataRepository dataRep, String outFileName) throws IOException {
         DataView dataView = new DataView(inputData.getVirtualGrid(), dataRep);
 
-        // TODO handling of many California freeways in batch
+
         OutputGrid outputGrid = new OutputGrid(outFileName, inputData.getOutput()
                 .getSpatioTemporalContour(), dataRep);
 
