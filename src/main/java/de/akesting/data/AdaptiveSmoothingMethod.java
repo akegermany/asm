@@ -98,6 +98,7 @@ public class AdaptiveSmoothingMethod {
 
                 // loop over data points
                 List<Datapoint> griddedData = view.getData(x0, t0);
+                // Iterable<Datapoint> griddedData = view.getDataWithoutCopying(x0, t0);
                 for (Datapoint dp : griddedData) {
 
                     double x = dp.x();

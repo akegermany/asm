@@ -81,39 +81,43 @@ public final class DataView {
     }
 
 
-//    Iterable<Datapoint> getData(double x0, double t0) {
-//        if (!withVirtualGrid() || (nx == 1 && nt == 1)) {
-//            return dataRep.data();
-//        }
-//        int indexX0 = indexX(x0);
-//        int indexT0 = indexT(t0);
-//
-//        // System.out.printf("x0=%.3fkm, t0=%.3fh --> ix=%d, it=%d (nx=%d, nt=%d) %n", x0, t0, indexX0, indexT0, nx, nt);
-//
-//        List<List<Datapoint>> lists = new ArrayList<>();
-//        int nNeigbors = 1;
-//        do {
-//            if (nNeigbors > 1) {
-//                // System.out.printf(" only %d datapoints in virtual grid...add %d-th neigbours  (x0=%.3fkm, t0=%.3fh --> ix=%d, it=%d (nx=%d, nt=%d))%n",
-//                // list.size(), nNeigbors, x0, t0, indexX0, indexT0, nx, nt);
-//                lists.clear();
-//            }
-//            for (int ix = -nNeigbors; ix <= nNeigbors; ix++) {
-//                for (int it = -nNeigbors; it <= nNeigbors; it++) {
-//                    if (isAvailable(indexX0 + ix, indexT0 + it)) {
-//                        lists.add(griddedData[indexX0 + ix][indexT0 + it]);
-//                    }
-//                }
-//            }
-//            nNeigbors++;
-//            if (Iterables.size(Iterables.concat(lists)) == dataRep.data().size()) {
-//                break;
-//            }
-//        } while (Iterables.size(Iterables.concat(lists)) < virtualGridConfig.getNDataMin());
-//        // System.out.printf("(x0,t0)=(%.2f, %.2f) --> (ix,it)=(%d,%d) --> list.size=%d, maxSize=%d%n", x0, t0, ix, it, list.size(),
-//        // dataRep.data().size());
-//        return Iterables.concat(lists);
-//    }
+    Iterable<Datapoint> getDataWithoutCopying(double x0, double t0) {
+        if (!withVirtualGrid() || (nx == 1 && nt == 1)) {
+            return dataRep.data();
+        }
+        int indexX0 = indexX(x0);
+        int indexT0 = indexT(t0);
+
+        // System.out.printf("x0=%.3fkm, t0=%.3fh --> ix=%d, it=%d (nx=%d, nt=%d) %n", x0, t0, indexX0, indexT0, nx, nt);
+
+        List<List<Datapoint>> lists = new ArrayList<>();
+        int nNeigbors = 1;
+        do {
+            if (nNeigbors > 1) {
+                // System.out.printf(" only %d datapoints in virtual grid...add %d-th neigbours  (x0=%.3fkm, t0=%.3fh --> ix=%d, it=%d (nx=%d, nt=%d))%n",
+                // list.size(), nNeigbors, x0, t0, indexX0, indexT0, nx, nt);
+                lists.clear();
+            }
+            for (int ix = -nNeigbors; ix <= nNeigbors; ix++) {
+                for (int it = -nNeigbors; it <= nNeigbors; it++) {
+                    if (isAvailable(indexX0 + ix, indexT0 + it)) {
+                        lists.add(griddedData[indexX0 + ix][indexT0 + it]);
+                    }
+                }
+            }
+            nNeigbors++;
+            if (getDataPointSize(lists) == dataRep.data().size()) {
+                break;
+            }
+        } while (getDataPointSize(lists) < virtualGridConfig.getNDataMin());
+        // System.out.printf("(x0,t0)=(%.2f, %.2f) --> (ix,it)=(%d,%d) --> list.size=%d, maxSize=%d%n", x0, t0, ix, it, list.size(),
+        // dataRep.data().size());
+        return Iterables.concat(lists);
+    }
+
+    private int getDataPointSize(List<List<Datapoint>> lists) {
+        return lists.stream().mapToInt(List::size).sum();
+    }
 
     private boolean isAvailable(int ix, int it) {
         return (ix >= 0 && ix < nx && it >= 0 && it < nt);
