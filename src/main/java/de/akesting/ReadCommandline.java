@@ -26,28 +26,32 @@ public final class ReadCommandline {
         return workingDirectory;
     }
 
+    private String getWithoutEnding(String name) {
+        return name.substring(0, name.lastIndexOf('.'));
+    }
+
     // TODO also allow for .gz
     public String defaultOutFilename() {
-        String f = filename.substring(0, filename.lastIndexOf('.'));
+        String f = getWithoutEnding(filename);
         // f += ".out.csv.gz";
         f += ".out.csv";
         return f;
     }
 
     public String defaultReposFilename() {
-        String f = filename.substring(0, filename.lastIndexOf('.'));
+        String f = getWithoutEnding(filename);
         f += ".rep_dat";
         return f;
     }
 
     public String defaultFilteredDataFilename() {
-        String f = filename.substring(0, filename.lastIndexOf('.'));
+        String f = getWithoutEnding(filename);
         f += ".filtered_dat";
         return f;
     }
 
     public String defaultKernelFilename() {
-        String f = filename.substring(0, filename.lastIndexOf('.'));
+        String f = getWithoutEnding(filename);
         f += ".kernel_dat";
         return f;
     }
@@ -73,6 +77,7 @@ public final class ReadCommandline {
         options.addOption("h", "help", false, "print this message");
         options.addOption("f", "file", true, "project (xml) file name ");
         options.addOption("a", "aggregation", true, "data aggregation ");
+
 
         parseAndInterrogate(args);
 
