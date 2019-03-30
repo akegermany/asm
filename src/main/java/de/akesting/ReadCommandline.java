@@ -29,8 +29,8 @@ public final class ReadCommandline {
     // TODO also allow for .gz
     public String defaultOutFilename() {
         String f = filename.substring(0, filename.lastIndexOf('.'));
-        // f += ".out.gz";
-        f += ".out";
+        // f += ".out.csv.gz";
+        f += ".out.csv";
         return f;
     }
 
