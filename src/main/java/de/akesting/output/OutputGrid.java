@@ -19,6 +19,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class OutputGrid {
 
+    private static final String SEPARATOR = ",";
+
     private static final double SMALL_VAL = 1e-6;
 
     private final String filename;
@@ -196,17 +198,17 @@ public final class OutputGrid {
             double x0 = position(ix);
             for (int it = 0; it < ndt(); it++) {
                 double t0 = time(it);
-                fstr.write(String.format("%10.2f %10.1f %6.2f %6.2f %6.2f %6.5f %s %7.5f", x0, t0, vOut.get(ix, it),
-                        vFree.get(ix, it), vCong.get(ix, it), weight.get(ix, it),
-                        FormatUtils.getFormattedTime(t0), normFree.get(ix, it)));
+                fstr.write(String.format("%.2f%s%.1f%s%.2f%s%.2f%s%.2f%s%.5f%s%s%s%.5f", x0, SEPARATOR, t0, SEPARATOR, vOut.get(ix, it), SEPARATOR,
+                        vFree.get(ix, it), SEPARATOR, vCong.get(ix, it), SEPARATOR, weight.get(ix, it), SEPARATOR,
+                        FormatUtils.getFormattedTime(t0), SEPARATOR, normFree.get(ix, it)));
                 if (withFlow()) {
-                    fstr.write(String.format(" %7.5f", flowOut.get(ix, it)));
+                    fstr.write(String.format("%s%.5f", SEPARATOR, flowOut.get(ix, it)));
                 }
                 if (withDensity()) {
-                    fstr.write(String.format(" %7.6f", rhoOut.get(ix, it)));
+                    fstr.write(String.format("%s%.6f", SEPARATOR, rhoOut.get(ix, it)));
                 }
                 if (withOccupancy()) {
-                    fstr.write(String.format(" %5.4f", occOut.get(ix, it)));
+                    fstr.write(String.format("%s%.4f", SEPARATOR, occOut.get(ix, it)));
                 }
                 fstr.write(String.format("%n"));
             }
