@@ -9,6 +9,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.apache.commons.lang3.StringUtils;
 
 public final class ReadCommandline {
 
@@ -17,6 +18,8 @@ public final class ReadCommandline {
 
     private String filename = "";
     private String workingDirectory = "";
+
+    private String dataInputFilename = "";
 
     public String xmlFilename() {
         return filename;
@@ -56,6 +59,12 @@ public final class ReadCommandline {
         return f;
     }
 
+    // check if not empty
+    public String getDataInputFilename() {
+        return dataInputFilename;
+    }
+
+
     public String defaultTraveltimeFilename() {
         return defaultOutFilename() + ".tt";
     }
@@ -77,15 +86,16 @@ public final class ReadCommandline {
         options.addOption("h", "help", false, "print this message");
         options.addOption("f", "file", true, "project (xml) file name ");
         options.addOption("a", "aggregation", true, "data aggregation ");
-
+        options.addOption("i", "input", true, "input file overwriting xml ");
 
         parseAndInterrogate(args);
 
         File file = new File(filename);
         file = file.getAbsoluteFile();
         File parentPath = file.getParentFile();
-        if (parentPath != null)
+        if (parentPath != null) {
             workingDirectory = parentPath.toString() + File.separator;
+        }
         filename = workingDirectory + file.getName();
         System.out.println("projectDirectory = " + workingDirectory);
         System.out.println("projectFilename  = " + filename);
@@ -95,6 +105,10 @@ public final class ReadCommandline {
             System.err.println("no xml inputfile " + xmlFilename());
             System.exit(-1);
         }
+        if (StringUtils.isNotBlank(dataInputFilename)) {
+            System.out.println("data input file overwriting xml = " + dataInputFilename);
+        }
+
     }
 
     // issue an help message if first command-line parameter help or -help
@@ -111,6 +125,9 @@ public final class ReadCommandline {
             }
             if (line.hasOption('f')) {
                 filename = line.getOptionValue('f');
+            }
+            if (line.hasOption('i')) {
+                dataInputFilename = line.getOptionValue('i');
             }
         } catch (ParseException exp) {
             System.err.println("Unexpected exception:" + exp.getMessage());
