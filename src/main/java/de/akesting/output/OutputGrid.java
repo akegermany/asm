@@ -9,6 +9,7 @@ import java.util.Locale;
 import com.google.common.base.Preconditions;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.ImmutableList;
 import de.akesting.autogen.Output;
 import de.akesting.autogen.SpatioTemporalContour;
 import de.akesting.data.DataRepository;
@@ -45,7 +46,7 @@ public final class OutputGrid {
 
     private boolean isReverseDirection;
 
-    private final List<OutputDataPoint> outputDataPoints;
+    private final ImmutableList<OutputDataPoint> outputDataPoints;
 
     public OutputGrid(String defaultFilename, SpatioTemporalContour spatioTemporalContour, DataRepository dataRep) {
         Preconditions.checkArgument(defaultFilename != null && !defaultFilename.isEmpty());
@@ -95,19 +96,7 @@ public final class OutputGrid {
         nDtOut = (int) ((tEnd - tStart) / dtOut) + 1;
         nDxOut = (int) ((xEnd - xStart) / dxOut) + 1;
 
-        outputDataPoints = new ArrayList<>(nDxOut * nDtOut);
-
-        for(int i=0; i<nDxOut * nDtOut;i++){
-            outputDataPoints.add(i, new OutputDataPoint(Float.MIN_VALUE, Float.MIN_VALUE));
-        }
-        for (int ix = 0; ix < nDxOut; ix++) {
-            double x0 = position(ix);
-            for (int it = 0; it < nDtOut; it++) {
-                double t0 = time(it);
-                int index = getIndex(ix, it);
-                outputDataPoints.set(index, new OutputDataPoint(x0, t0));
-            }
-        }
+        outputDataPoints = initOutputList();
 
         // TODO: check mit range aus DataRep !!!
 
@@ -127,6 +116,19 @@ public final class OutputGrid {
          * System.exit(-1);
          * }
          */
+    }
+
+    private ImmutableList<OutputDataPoint> initOutputList() {
+        OutputDataPoint[] dps = new OutputDataPoint[nDxOut * nDtOut];
+        for (int ix = 0; ix < nDxOut; ix++) {
+            double x0 = position(ix);
+            for (int it = 0; it < nDtOut; it++) {
+                double t0 = time(it);
+                int index = getIndex(ix, it);
+                dps[index] = new OutputDataPoint(x0, t0);
+            }
+        }
+        return ImmutableList.copyOf(dps);
     }
 
 
@@ -246,24 +248,16 @@ public final class OutputGrid {
         return ((1 - w1) * (1 - w2) * v1 + w1 * (1 - w2) * v2 + w1 * w2 * v3 + (1 - w1) * w2 * v4);
     }
 
-    public boolean withFlow() {
+    boolean withFlow() {
         return withFlow;
     }
 
-    public boolean withDensity() {
+    boolean withDensity() {
         return withRho;
     }
 
-    public boolean withOccupancy() {
+    boolean withOccupancy() {
         return withOcc;
-    }
-
-    public double dtOut() {
-        return dtOut;
-    }
-
-    public double dxOut() {
-        return dxOut;
     }
 
     public int ndt() {
@@ -298,23 +292,23 @@ public final class OutputGrid {
         return xEnd;
     }
 
-    public double tStartGrid() {
+    double tStartGrid() {
         return tStart();
     }
 
-    public double xStartGrid() {
+    double xStartGrid() {
         return xStart();
     }
 
-    public double tEndGrid() {
+    double tEndGrid() {
         return tStart + (nDtOut - 1) * dtOut;
     }
 
-    public double xEndGrid() {
+    double xEndGrid() {
         return xStart + (nDxOut - 1) * dxOut;
     }
 
-    public boolean isReverseDirection() {
+    boolean isReverseDirection() {
         return isReverseDirection;
     }
 
@@ -322,33 +316,7 @@ public final class OutputGrid {
         return withFileOutput;
     }
 
-    public double xStartKm() {
-        return xStart / 1000.;
-    }
-
-    public double xEndKm() {
-        return xEnd / 1000.;
-    }
-
-    public double tStartH() {
-        return tStart / 3600.;
-    }
-
-    public double tEndH() {
-        return tEnd / 3600.;
-    }
-
-    public void set(OutputDataType outputDataType, int ix, int it, double value) {
-        int index = getIndex(ix, it);
-        outputDataPoints.get(index).setValue(outputDataType, value);
-    }
-
-    public double get(OutputDataType outputDataType, int ix, int it) {
-        int index = getIndex(ix, it);
-        return outputDataPoints.get(index).getValue(outputDataType);
-    }
-
-    public List<OutputDataPoint> getOutputDataPoints(){
-        return outputDataPoints;  // TODO immutableList
+    public ImmutableList<OutputDataPoint> getOutputDataPoints() {
+        return outputDataPoints;
     }
 }
