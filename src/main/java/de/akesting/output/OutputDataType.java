@@ -10,6 +10,7 @@ public enum OutputDataType {
     V_CONG,
     WEIGHT,
     V_OUT,
+
     FLOW_FREE,
     FLOW_CONG,
     FLOW_OUT,
@@ -23,7 +24,8 @@ public enum OutputDataType {
     OCC_OUT,
 
     NORM_FREE,
-    NORM_CONG;
+    NORM_CONG,
+    NORM_OUT;
 
     public static final Collection<OutputDataType> VALUES = Arrays.asList(OutputDataType.values());
 

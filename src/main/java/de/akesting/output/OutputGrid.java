@@ -175,7 +175,7 @@ public final class OutputGrid {
                 double t0 = time(it);
                 fstr.write(String.format("%.2f%s%.1f%s%.2f%s%.2f%s%.2f%s%.5f%s%s%s%.5f", x0, SEPARATOR, t0, SEPARATOR, dp.getValue(V_OUT), SEPARATOR,
                         dp.getValue(V_FREE), SEPARATOR, dp.getValue(V_CONG), SEPARATOR, dp.getValue(WEIGHT), SEPARATOR,
-                        FormatUtils.getFormattedTime(t0), SEPARATOR, dp.getValue(NORM_FREE)));
+                        FormatUtils.getFormattedTime(t0), SEPARATOR, dp.getValue(NORM_OUT)));
                 if (withFlow()) {
                     fstr.write(String.format("%s%.5f", SEPARATOR, dp.getValue(FLOW_OUT)));
                 }

@@ -19,7 +19,7 @@ import static de.akesting.output.OutputDataType.*;
 
 public class AdaptiveSmoothingMethod {
 
-    private static final double CRIT_NORM_THRESHOLD = 0.1;
+    private static final double CRITICAL_NORM_THRESHOLD = 0.1;
 
     private final ParameterASM parameter;
 
@@ -37,24 +37,6 @@ public class AdaptiveSmoothingMethod {
                 "vgCong is near zero (devision not defined)");
     }
 
-    private double phi(double x, double t) {
-        return phiX(x) * phiT(t);
-    }
-
-    private double phiX(double x) {
-        if (parameter.isWithTriangular()) {
-            return Math.max(0, 1 - Math.abs(x) / parameter.getDxSmooth());
-        }
-        return Math.exp(-Math.abs(x / parameter.getDxSmooth()));
-    }
-
-    private double phiT(double t) {
-        if (parameter.isWithTriangular()) {
-            return Math.max(0, 1 - Math.abs(t) / parameter.getDtSmooth());
-        }
-        return Math.exp(-Math.abs(t / parameter.getDtSmooth()));
-    }
-
     public void doSmoothing(DataView view, OutputGrid grid) {
         this.view = checkNotNull(view);
         this.grid = checkNotNull(grid);
@@ -69,18 +51,20 @@ public class AdaptiveSmoothingMethod {
         calculateWeights();
         calculateQuantities();
         checkNorm();
+
         System.out.println("**** Profiling: Time for whole loop took " + stopwatch);
     }
+
 
     private void checkNorm() {
         Stopwatch stopwatch = Stopwatch.createStarted();
         double minNormFree = grid.getOutputDataPoints().parallelStream().mapToDouble(it -> it.getValue(OutputDataType.NORM_FREE)).filter(it -> it == 0).min().orElse(100);
         double minNormCong = grid.getOutputDataPoints().parallelStream().mapToDouble(it -> it.getValue(OutputDataType.NORM_CONG)).filter(it -> it == 0).min().orElse(100);
-        if (Math.min(minNormFree, minNormCong) < CRIT_NORM_THRESHOLD) {
+        if (Math.min(minNormFree, minNormCong) < CRITICAL_NORM_THRESHOLD) {
             System.out.printf("minNormFree=%6.5f, minNormCong=%6.5f %n", minNormFree, minNormCong);
             System.out
                     .printf("Warning: norm is quite low and smaller than threshold %3.2f. Please try a generous cut-off than the actual settings!%n",
-                            CRIT_NORM_THRESHOLD);
+                            CRITICAL_NORM_THRESHOLD);
         }
         System.out.println("checkNorm took " + stopwatch);
     }
@@ -94,6 +78,7 @@ public class AdaptiveSmoothingMethod {
     private void calculateOutputData(OutputDataPoint outputDataPoint) {
         final double x0 = outputDataPoint.x();
         final double t0 = outputDataPoint.t();
+
         // defaults
         double normFree = 0;
         double normCong = 0;
@@ -148,6 +133,9 @@ public class AdaptiveSmoothingMethod {
         outputDataPoint.setValue(V_FREE, (normFree == 0) ? 0 : vFree / normFree);
         outputDataPoint.setValue(V_CONG, (normCong == 0) ? 0 : vCong / normCong);
 
+        outputDataPoint.setValue(NORM_FREE, normFree);
+        outputDataPoint.setValue(NORM_CONG, normCong);
+
         if (view.withFlow()) {
             outputDataPoint.setValue(FLOW_FREE, (normFree == 0) ? 0 : flowFree / normFree);
             outputDataPoint.setValue(FLOW_CONG, (normCong == 0) ? 0 : flowCong / normCong);
@@ -163,9 +151,24 @@ public class AdaptiveSmoothingMethod {
             outputDataPoint.setValue(OCC_CONG, (normCong == 0) ? 0 : occCong / normCong);
         }
 
-        // testwise:
-        outputDataPoint.setValue(NORM_FREE, normFree);
-        outputDataPoint.setValue(NORM_CONG, normCong);
+    }
+
+    private double phi(double x, double t) {
+        return phiX(x) * phiT(t);
+    }
+
+    private double phiX(double x) {
+        if (parameter.isWithTriangular()) {
+            return Math.max(0, 1 - Math.abs(x) / parameter.getDxSmooth());
+        }
+        return Math.exp(-Math.abs(x / parameter.getDxSmooth()));
+    }
+
+    private double phiT(double t) {
+        if (parameter.isWithTriangular()) {
+            return Math.max(0, 1 - Math.abs(t) / parameter.getDtSmooth());
+        }
+        return Math.exp(-Math.abs(t / parameter.getDtSmooth()));
     }
 
     private void calculateWeights() {
@@ -198,6 +201,10 @@ public class AdaptiveSmoothingMethod {
         double w = odp.getValue(WEIGHT);
         double result = w * odp.getValue(V_CONG) + (1 - w) * odp.getValue(V_FREE);
         odp.setValue(V_OUT, result);
+
+        double normResult = w * odp.getValue(NORM_CONG) + (1 - w) * odp.getValue(NORM_FREE);
+        odp.setValue(NORM_OUT, normResult);
+
         if (view.withFlow()) {
             odp.setValue(FLOW_OUT, w * odp.getValue(FLOW_CONG) + (1 - w) * odp.getValue(FLOW_FREE));
         }
@@ -207,10 +214,6 @@ public class AdaptiveSmoothingMethod {
         if (view.withOccupancy()) {
             odp.setValue(OCC_OUT, w * odp.getValue(OCC_CONG) + (1 - w) * odp.getValue(OCC_FREE));
         }
-        // testwise:
-        double normResult = w * odp.getValue(NORM_CONG) + (1 - w) * odp.getValue(NORM_FREE);
-        odp.setValue(NORM_FREE, normResult);  // TODO normFree misused?
-
     }
 
     private double tanh(double x) {
@@ -233,9 +236,7 @@ public class AdaptiveSmoothingMethod {
         double x = 0.5 * (grid.xEnd() - grid.xStart());
         double t = 0.5 * (grid.tEnd() - grid.tStart());
 
-        PrintWriter fstr = null;
-        try {
-            fstr = new PrintWriter(new BufferedWriter(new FileWriter(filename, false)));
+        try (PrintWriter fstr = new PrintWriter(new BufferedWriter(new FileWriter(filename, false)))) {
             // header information for data:
             fstr.printf("# x[km]  t[h]  phi_free  phi_cong %n");
             for (int ix = 0; ix < grid.ndx(); ix++) {
@@ -251,11 +252,7 @@ public class AdaptiveSmoothingMethod {
         } catch (java.io.IOException e) {
             System.err.println("Error  " + "Cannot open file " + filename);
             e.printStackTrace();
-        } finally {
-            if (fstr != null) {
-                fstr.close();
-            }
         }
-        System.out.println(" ASM Kerneltest finished...");
+        System.out.println(" ASM kernel test finished...");
     }
 }
