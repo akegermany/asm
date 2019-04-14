@@ -1,11 +1,10 @@
 package de.akesting.output;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
-
-import Jama.Matrix;
 
 import com.google.common.base.Preconditions;
 
@@ -16,6 +15,7 @@ import de.akesting.utils.FileUtils;
 import de.akesting.utils.FormatUtils;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static de.akesting.output.OutputDataType.*;
 
 public final class OutputGrid {
 
@@ -38,31 +38,13 @@ public final class OutputGrid {
     private double tStart;
     private double tEnd;
 
-    public Matrix vFree;
-    public Matrix vCong;
-    public Matrix weight;
-    public Matrix vOut;
-
-    public Matrix flowFree;
-    public Matrix flowCong;
-    public Matrix flowOut;
-
-    public Matrix rhoFree;
-    public Matrix rhoCong;
-    public Matrix rhoOut;
-
-    public Matrix occFree;
-    public Matrix occCong;
-    public Matrix occOut;
-
-    public Matrix normFree;
-    public Matrix normCong;
-
     private boolean withFlow;
     private boolean withRho;
     private boolean withOcc;
 
     private boolean isReverseDirection;
+
+    private final List<OutputDataPoint> outputDataPoints;
 
     public OutputGrid(String defaultFilename, SpatioTemporalContour spatioTemporalContour, DataRepository dataRep) {
         Preconditions.checkArgument(defaultFilename != null && !defaultFilename.isEmpty());
@@ -108,8 +90,25 @@ public final class OutputGrid {
             System.exit(-1);
         }
 
+
+        // nDxOut --> Number of rows. nDtOut --> Number of columns.
         nDtOut = (int) ((tEnd - tStart) / dtOut) + 1;
         nDxOut = (int) ((xEnd - xStart) / dxOut) + 1;
+
+        outputDataPoints = new ArrayList<>(nDxOut * nDtOut);
+
+        for(int i=0; i<nDxOut * nDtOut;i++){
+            outputDataPoints.add(i, new OutputDataPoint(Float.MIN_VALUE, Float.MIN_VALUE));
+        }
+        for (int ix = 0; ix < nDxOut; ix++) {
+            double x0 = position(ix);
+            for (int it = 0; it < nDtOut; it++) {
+                double t0 = time(it);
+                int index = getIndex(ix, it);
+               // System.out.println(index + ", (x,t)="+x0 + ","+t0);
+                outputDataPoints.set(index, new OutputDataPoint(x0, t0));
+            }
+        }
 
         // TODO: check mit range aus DataRep !!!
 
@@ -129,35 +128,8 @@ public final class OutputGrid {
          * System.exit(-1);
          * }
          */
-
-        initialize();
     }
 
-    private void initialize() {
-        // nDxOut --> Number of rows. nDtOut --> Number of columns.
-        vFree = new Matrix(nDxOut, nDtOut, 0);
-        vCong = new Matrix(nDxOut, nDtOut, 0);
-        weight = new Matrix(nDxOut, nDtOut, 0);
-        vOut = new Matrix(nDxOut, nDtOut, 0);
-
-        if (withFlow) {
-            flowFree = new Matrix(nDxOut, nDtOut, 0);
-            flowCong = new Matrix(nDxOut, nDtOut, 0);
-            flowOut = new Matrix(nDxOut, nDtOut, 0);
-        }
-        if (withRho) {
-            rhoFree = new Matrix(nDxOut, nDtOut, 0);
-            rhoCong = new Matrix(nDxOut, nDtOut, 0);
-            rhoOut = new Matrix(nDxOut, nDtOut, 0);
-        }
-        if (withOcc) {
-            occFree = new Matrix(nDxOut, nDtOut, 0);
-            occCong = new Matrix(nDxOut, nDtOut, 0);
-            occOut = new Matrix(nDxOut, nDtOut, 0);
-        }
-        normFree = new Matrix(nDxOut, nDtOut, 0);
-        normCong = new Matrix(nDxOut, nDtOut, 0);
-    }
 
     public void write(DataRepository dataRep) throws IOException {
         Locale.setDefault(Locale.US);
@@ -197,18 +169,20 @@ public final class OutputGrid {
         for (int ix = 0; ix < ndx(); ix++) {
             double x0 = position(ix);
             for (int it = 0; it < ndt(); it++) {
+                int index = getIndex(ix, it);
+                OutputDataPoint dp = outputDataPoints.get(index);
                 double t0 = time(it);
-                fstr.write(String.format("%.2f%s%.1f%s%.2f%s%.2f%s%.2f%s%.5f%s%s%s%.5f", x0, SEPARATOR, t0, SEPARATOR, vOut.get(ix, it), SEPARATOR,
-                        vFree.get(ix, it), SEPARATOR, vCong.get(ix, it), SEPARATOR, weight.get(ix, it), SEPARATOR,
-                        FormatUtils.getFormattedTime(t0), SEPARATOR, normFree.get(ix, it)));
+                fstr.write(String.format("%.2f%s%.1f%s%.2f%s%.2f%s%.2f%s%.5f%s%s%s%.5f", x0, SEPARATOR, t0, SEPARATOR, dp.getValue(V_OUT), SEPARATOR,
+                        dp.getValue(V_FREE), SEPARATOR, dp.getValue(V_CONG), SEPARATOR, dp.getValue(WEIGHT), SEPARATOR,
+                        FormatUtils.getFormattedTime(t0), SEPARATOR, dp.getValue(NORM_FREE)));
                 if (withFlow()) {
-                    fstr.write(String.format("%s%.5f", SEPARATOR, flowOut.get(ix, it)));
+                    fstr.write(String.format("%s%.5f", SEPARATOR, dp.getValue(FLOW_OUT)));
                 }
                 if (withDensity()) {
-                    fstr.write(String.format("%s%.6f", SEPARATOR, rhoOut.get(ix, it)));
+                    fstr.write(String.format("%s%.6f", SEPARATOR, dp.getValue(RHO_OUT)));
                 }
                 if (withOccupancy()) {
-                    fstr.write(String.format("%s%.4f", SEPARATOR, occOut.get(ix, it)));
+                    fstr.write(String.format("%s%.4f", SEPARATOR, dp.getValue(OCC_OUT)));
                 }
                 fstr.write(String.format("%n"));
             }
@@ -218,31 +192,37 @@ public final class OutputGrid {
         System.out.println(" done in " + stopwatch);
     }
 
+    private int getIndex(int ix, int it) {
+        return ix + nDxOut * it;
+    }
 
     double getSpeedResult(double x, double t) {
-        return interpolate(vOut, x, t);
+        return interpolate(V_OUT, x, t);
     }
 
     double getFlowResult(double x, double t) {
-        if (!withFlow)
+        if (!withFlow) {
             return 0;
-        return interpolate(this.flowOut, x, t);
+        }
+        return interpolate(FLOW_OUT, x, t);
     }
 
     double getDensityResult(double x, double t) {
-        if (!withRho)
+        if (!withRho) {
             return 0;
-        return interpolate(this.rhoOut, x, t);
+        }
+        return interpolate(RHO_OUT, x, t);
     }
 
     double getOccupancyResult(double x, double t) {
-        if (!withOcc)
+        if (!withOcc) {
             return 0;
-        return interpolate(this.occOut, x, t);
+        }
+        return interpolate(OCC_OUT, x, t);
     }
 
     double getWeightResult(double x, double t) {
-        return interpolate(weight, x, t);
+        return interpolate(WEIGHT, x, t);
     }
 
     boolean isDataAvailable(double x, double t) {
@@ -251,7 +231,7 @@ public final class OutputGrid {
         return (x >= xStart && x <= xEndGrid() && t >= tStart && t <= tEndGrid());
     }
 
-    private double interpolate(Matrix matrix, double x, double t) {
+    private double interpolate(OutputDataType outputDataType, double x, double t) {
         int xindex = (int) (SMALL_VAL + (x - xStart) / dxOut);
         int tindex = (int) (SMALL_VAL + (t - tStart) / dtOut);
         // development:
@@ -270,21 +250,24 @@ public final class OutputGrid {
         // interpolation in 2D (bilinear), cf. Numerical Recipies
         double w1 = 0;
         double w2 = 0;
-        if (xindex + 1 < matrix.getRowDimension())
+        if (xindex + 1 < nDxOut)
             w1 = ((x - xStart) - xindex * dxOut) / dxOut;
-        if (tindex + 1 < matrix.getColumnDimension())
+        if (tindex + 1 < nDtOut)
             w2 = ((t - tStart) - tindex * dtOut) / dtOut;
         // data grid:
-        double v1 = matrix.get(xindex, tindex);
+        double v1 = outputDataPoints.get(getIndex(xindex, tindex)).getValue(outputDataType);
         double v2 = 0;
         double v3 = 0;
         double v4 = 0;
-        if (w1 > 0)
-            v2 = matrix.get(xindex + 1, tindex);
-        if (w2 > 0)
-            v4 = matrix.get(xindex, tindex + 1);
-        if (w1 > 0 && w2 > 0)
-            v3 = matrix.get(xindex + 1, tindex + 1);
+        if (w1 > 0) {
+            v2 = outputDataPoints.get(getIndex(xindex + 1, tindex)).getValue(outputDataType);
+        }
+        if (w2 > 0) {
+            v4 = outputDataPoints.get(getIndex(xindex, tindex + 1)).getValue(outputDataType);
+        }
+        if (w1 > 0 && w2 > 0) {
+            v3 = outputDataPoints.get(getIndex(xindex + 1, tindex + 1)).getValue(outputDataType);
+        }
         // System.out.printf("w1=%f, w2=%f, v1=%.3f, v2=%.3f, v3=%.3f, v4=%.3%n",w1,w2,v1,v2,v3,v4);
         return ((1 - w1) * (1 - w2) * v1 + w1 * (1 - w2) * v2 + w1 * w2 * v3 + (1 - w1) * w2 * v4);
     }
@@ -310,11 +293,11 @@ public final class OutputGrid {
     }
 
     public int ndt() {
-        return vFree.getColumnDimension();
+        return nDtOut;
     }
 
     public int ndx() {
-        return vFree.getRowDimension();
+        return nDxOut;
     }
 
     public double position(int ix) {
@@ -379,5 +362,19 @@ public final class OutputGrid {
 
     public double tEndH() {
         return tEnd / 3600.;
+    }
+
+    public void set(OutputDataType outputDataType, int ix, int it, double value) {
+        int index = getIndex(ix, it);
+        outputDataPoints.get(index).setValue(outputDataType, value);
+    }
+
+    public double get(OutputDataType outputDataType, int ix, int it) {
+        int index = getIndex(ix, it);
+        return outputDataPoints.get(index).getValue(outputDataType);
+    }
+
+    public List<OutputDataPoint> getOutputDataPoints(){
+        return outputDataPoints;  // TODO immutableList
     }
 }

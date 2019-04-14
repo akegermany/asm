@@ -5,17 +5,17 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
-
-import com.google.common.base.Preconditions;
 
 import com.google.common.base.Stopwatch;
 import de.akesting.autogen.ParameterASM;
+import de.akesting.output.OutputDataPoint;
+import de.akesting.output.OutputDataType;
 import de.akesting.output.OutputGrid;
 import org.apache.commons.math3.util.FastMath;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static de.akesting.output.OutputDataType.*;
 
 public class AdaptiveSmoothingMethod {
 
@@ -60,164 +60,157 @@ public class AdaptiveSmoothingMethod {
         this.grid = checkNotNull(grid);
 
         view.generateGriddedData(parameter.getDxSmooth(), parameter.getDtSmooth());
-
         System.out.println("ASM ... doSmoothing ");
 
         this.drivingDir = (view.isReverseDirection()) ? -1 : 1;
 
         Stopwatch stopwatch = Stopwatch.createStarted();
-
         calculateGrid();
         calculateWeights();
         calculateQuantities();
-
+        checkNorm();
         System.out.println("**** Profiling: Time for whole loop took " + stopwatch);
     }
 
-    private void calculateGrid() {
+    private void checkNorm() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        double minNormFree = 1e10; // init
-        double minNormCong = 1e10; // init
-
-        // main loop
-        for (int ix = 0; ix < grid.ndx(); ix++) {
-            double x0 = grid.position(ix);
-            for (int it = 0; it < grid.ndt(); it++) {
-                double t0 = grid.time(it);
-                // defaults
-                double normFree = 0;
-                double normCong = 0;
-                double vFree = 0;
-                double vCong = 0;
-                double flowFree = 0;
-                double flowCong = 0;
-                double rhoFree = 0;
-                double rhoCong = 0;
-                double occFree = 0;
-                double occCong = 0;
-
-                // loop over data points
-                List<Datapoint> griddedData = view.getData(x0, t0);
-                // Iterable<Datapoint> griddedData = view.getDataWithoutCopying(x0, t0);
-                for (Datapoint dp : griddedData) {
-
-                    double x = dp.x();
-                    double t = dp.t();
-
-                    // System.out.printf("x0=%6.1fm, x=%6.1fm,  t0=%6.1fs, t=%6.1fs,  |x-x0|=%6.3fm, |t-t0|=%6.3fs%n", x0, x, t0, t,
-                    // Math.abs(x-x0), Math.abs(t-t0));
-                    double v = dp.v();
-
-                    double phiFree = dp.weight() * phi(x - x0, t - t0 - drivingDir * (x - x0) / vgFree());
-                    normFree += phiFree;
-                    vFree += phiFree * v;
-
-                    double phiCong = dp.weight() * phi(x - x0, t - t0 - drivingDir * (x - x0) / vgCong());
-                    normCong += phiCong;
-                    vCong += phiCong * v;
-
-                    if (view.withFlow()) {
-                        double flow = dp.q();
-                        flowFree += phiFree * flow;
-                        flowCong += phiCong * flow;
-                    }
-
-                    if (view.withDensity()) {
-                        double rho = dp.rho();
-                        rhoFree += phiFree * rho;
-                        rhoCong += phiCong * rho;
-                    }
-
-                    if (view.withOccupancy()) {
-                        double occ = dp.occ();
-                        occFree += phiFree * occ;
-                        occCong += phiCong * occ;
-                    }
-                }
-
-                // make normalization:
-                grid.vFree.set(ix, it, (normFree == 0) ? 0 : vFree / normFree);
-                grid.vCong.set(ix, it, (normCong == 0) ? 0 : vCong / normCong);
-
-                if (view.withFlow()) {
-                    grid.flowFree.set(ix, it, (normFree == 0) ? 0 : flowFree / normFree);
-                    grid.flowCong.set(ix, it, (normCong == 0) ? 0 : flowCong / normCong);
-                }
-
-                if (view.withDensity()) {
-                    grid.rhoFree.set(ix, it, (normFree == 0) ? 0 : rhoFree / normFree);
-                    grid.rhoCong.set(ix, it, (normCong == 0) ? 0 : rhoCong / normCong);
-                }
-
-                if (view.withOccupancy()) {
-                    grid.occFree.set(ix, it, (normFree == 0) ? 0 : occFree / normFree);
-                    grid.occCong.set(ix, it, (normCong == 0) ? 0 : occCong / normCong);
-                }
-
-                // testwise:
-                grid.normFree.set(ix, it, normFree);
-                grid.normCong.set(ix, it, normCong);
-
-                minNormFree = Math.min(normFree, minNormFree);
-                minNormCong = Math.min(normCong, minNormCong);
-
-            }
-        }
-
+        double minNormFree = grid.getOutputDataPoints().parallelStream().mapToDouble(it -> it.getValue(OutputDataType.NORM_FREE)).filter(it -> it == 0).min().orElse(100);
+        double minNormCong = grid.getOutputDataPoints().parallelStream().mapToDouble(it -> it.getValue(OutputDataType.NORM_CONG)).filter(it -> it == 0).min().orElse(100);
         if (Math.min(minNormFree, minNormCong) < CRIT_NORM_THRESHOLD) {
             System.out.printf("minNormFree=%6.5f, minNormCong=%6.5f %n", minNormFree, minNormCong);
             System.out
                     .printf("Warning: norm is quite low and smaller than threshold %3.2f. Please try a generous cut-off than the actual settings!%n",
                             CRIT_NORM_THRESHOLD);
         }
+        System.out.println("checkNorm took " + stopwatch);
+    }
 
+    private void calculateGrid() {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        grid.getOutputDataPoints().parallelStream().forEach(this::calculateOutputData);
         System.out.println("calculate grid data took " + stopwatch);
+    }
+
+    private void calculateOutputData(OutputDataPoint outputDataPoint) {
+        final double x0 = outputDataPoint.x();
+        final double t0 = outputDataPoint.t();
+        // defaults
+        double normFree = 0;
+        double normCong = 0;
+        double vFree = 0;
+        double vCong = 0;
+        double flowFree = 0;
+        double flowCong = 0;
+        double rhoFree = 0;
+        double rhoCong = 0;
+        double occFree = 0;
+        double occCong = 0;
+
+        // loop over data points
+        List<Datapoint> griddedData = view.getData(x0, t0);
+        // Iterable<Datapoint> griddedData = view.getDataWithoutCopying(x0, t0);
+        for (Datapoint dp : griddedData) {
+            double x = dp.x();
+            double t = dp.t();
+
+            // System.out.printf("x0=%6.1fm, x=%6.1fm,  t0=%6.1fs, t=%6.1fs,  |x-x0|=%6.3fm, |t-t0|=%6.3fs%n", x0, x, t0, t,
+            // Math.abs(x-x0), Math.abs(t-t0));
+            double v = dp.v();
+
+            double phiFree = dp.weight() * phi(x - x0, t - t0 - drivingDir * (x - x0) / vgFree());
+            normFree += phiFree;
+            vFree += phiFree * v;
+
+            double phiCong = dp.weight() * phi(x - x0, t - t0 - drivingDir * (x - x0) / vgCong());
+            normCong += phiCong;
+            vCong += phiCong * v;
+
+            if (view.withFlow()) {
+                double flow = dp.q();
+                flowFree += phiFree * flow;
+                flowCong += phiCong * flow;
+            }
+
+            if (view.withDensity()) {
+                double rho = dp.rho();
+                rhoFree += phiFree * rho;
+                rhoCong += phiCong * rho;
+            }
+
+            if (view.withOccupancy()) {
+                double occ = dp.occ();
+                occFree += phiFree * occ;
+                occCong += phiCong * occ;
+            }
+        }
+
+        // make normalization:
+        outputDataPoint.setValue(V_FREE, (normFree == 0) ? 0 : vFree / normFree);
+        outputDataPoint.setValue(V_CONG, (normCong == 0) ? 0 : vCong / normCong);
+
+        if (view.withFlow()) {
+            outputDataPoint.setValue(FLOW_FREE, (normFree == 0) ? 0 : flowFree / normFree);
+            outputDataPoint.setValue(FLOW_CONG, (normCong == 0) ? 0 : flowCong / normCong);
+        }
+
+        if (view.withDensity()) {
+            outputDataPoint.setValue(RHO_FREE, (normFree == 0) ? 0 : rhoFree / normFree);
+            outputDataPoint.setValue(RHO_CONG, (normCong == 0) ? 0 : rhoCong / normCong);
+        }
+
+        if (view.withOccupancy()) {
+            outputDataPoint.setValue(OCC_FREE, (normFree == 0) ? 0 : occFree / normFree);
+            outputDataPoint.setValue(OCC_CONG, (normCong == 0) ? 0 : occCong / normCong);
+        }
+
+        // testwise:
+        outputDataPoint.setValue(NORM_FREE, normFree);
+        outputDataPoint.setValue(NORM_CONG, normCong);
     }
 
     private void calculateWeights() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        // (3) calculate weights w --> matrix
-        final double vc = parameter.getVcKmh() / 3.6;
-        final double dvc = parameter.getDvcKmh() / 3.6;
-        for (int ix = 0; ix < grid.ndx(); ix++) {
-            for (int it = 0; it < grid.ndt(); it++) {
-                double vCong = grid.vCong.get(ix, it);
-                double vFree = grid.vFree.get(ix, it);
-                double vDecide = Math.min(vCong, vFree);
-                if (grid.normCong.get(ix, it) == 0)
-                    vDecide = vFree;
-                double w = Math.max(0, Math.min(1, 0.5 * (1. + tanh((vc - vDecide) / dvc))));
-                grid.weight.set(ix, it, w);
-            }
-        }
+        grid.getOutputDataPoints().parallelStream().forEach(this::calculateWeight);
         System.out.println("calculate weights took " + stopwatch);
     }
 
+    private void calculateWeight(OutputDataPoint outputDataPoint) {
+        final double vc = parameter.getVcKmh() / 3.6;
+        final double dvc = parameter.getDvcKmh() / 3.6;
+        double vCong = outputDataPoint.getValue(V_CONG);
+        double vFree = outputDataPoint.getValue(V_FREE);
+        double vDecide = Math.min(vCong, vFree);
+        if (outputDataPoint.getValue(NORM_CONG) == 0) {
+            vDecide = vFree;
+        }
+        double w = Math.max(0, Math.min(1, 0.5 * (1. + tanh((vc - vDecide) / dvc))));
+        outputDataPoint.setValue(WEIGHT, w);
+    }
 
     private void calculateQuantities() {
         Stopwatch stopwatch = Stopwatch.createStarted();
-        // (4) calc results (for speed only at this stage)
-        for (int ix = 0; ix < grid.ndx(); ix++) {
-            for (int it = 0; it < grid.ndt(); it++) {
-                double w = grid.weight.get(ix, it);
-                double result = w * grid.vCong.get(ix, it) + (1 - w) * grid.vFree.get(ix, it);
-                grid.vOut.set(ix, it, result);
-                if (view.withFlow()) {
-                    grid.flowOut.set(ix, it, w * grid.flowCong.get(ix, it) + (1 - w) * grid.flowFree.get(ix, it));
-                }
-                if (view.withDensity()) {
-                    grid.rhoOut.set(ix, it, w * grid.rhoCong.get(ix, it) + (1 - w) * grid.rhoFree.get(ix, it));
-                }
-                if (view.withOccupancy()) {
-                    grid.occOut.set(ix, it, w * grid.occCong.get(ix, it) + (1 - w) * grid.occFree.get(ix, it));
-                }
-                // testwise:
-                double normResult = w * grid.normCong.get(ix, it) + (1 - w) * grid.normFree.get(ix, it);
-                grid.normFree.set(ix, it, normResult);
-            }
-        }
-
+        grid.getOutputDataPoints().parallelStream().forEach(this::calculateQuantitiesForDatapoint);
         System.out.println("calculate quantities took " + stopwatch);
+    }
+
+    private void calculateQuantitiesForDatapoint(OutputDataPoint odp) {
+        // (4) calc results (for speed only at this stage)
+        double w = odp.getValue(WEIGHT);
+        double result = w * odp.getValue(V_CONG) + (1 - w) * odp.getValue(V_FREE);
+        odp.setValue(V_OUT, result);
+        if (view.withFlow()) {
+            odp.setValue(FLOW_OUT, w * odp.getValue(FLOW_CONG) + (1 - w) * odp.getValue(FLOW_FREE));
+        }
+        if (view.withDensity()) {
+            odp.setValue(RHO_OUT, w * odp.getValue(RHO_CONG) + (1 - w) * odp.getValue(RHO_FREE));
+        }
+        if (view.withOccupancy()) {
+            odp.setValue(OCC_OUT, w * odp.getValue(OCC_CONG) + (1 - w) * odp.getValue(OCC_FREE));
+        }
+        // testwise:
+        double normResult = w * odp.getValue(NORM_CONG) + (1 - w) * odp.getValue(NORM_FREE);
+        odp.setValue(NORM_FREE, normResult);  // TODO normFree misused?
+
     }
 
     private double tanh(double x) {

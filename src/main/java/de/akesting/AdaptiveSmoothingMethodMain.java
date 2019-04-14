@@ -64,8 +64,6 @@ public class AdaptiveSmoothingMethodMain {
 
     private void applyAsm(ReadCommandline cmdLine, AdaptiveSmoothingMethodProject inputData, DataRepository dataRep, String outFileName) throws IOException {
         DataView dataView = new DataView(inputData.getVirtualGrid(), dataRep);
-
-
         OutputGrid outputGrid = new OutputGrid(outFileName, inputData.getOutput()
                 .getSpatioTemporalContour(), dataRep);
 
