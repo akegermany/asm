@@ -49,21 +49,21 @@ public class TimeSeries {
             fstr.printf(Locale.US, "%n");
             double t = grid.tStart();
             while (t <= grid.tEnd()) {
-                double vASM = grid.getSpeedResult(x, t);
-                double weight = grid.getWeightResult(x, t);
+                double vASM = grid.get(OutputDataType.V_OUT, x, t);
+                double weight = grid.get(OutputDataType.WEIGHT, x, t);
                 fstr.printf(Locale.US, "%8.6f  %7.4f  %s  %7.6f", t / 3600., vASM * 3.6,
                         FormatUtils.getFormattedTime(t), weight);
 
                 if (grid.withFlow()) {
-                    double flow = grid.getFlowResult(x, t);
+                    double flow = grid.get(OutputDataType.FLOW_OUT, x, t);
                     fstr.printf(Locale.US, "  %f", flow * 3600);
                 }
                 if (grid.withFlow()) {
-                    double rho = grid.getDensityResult(x, t);
+                    double rho = grid.get(OutputDataType.RHO_OUT, x, t);
                     fstr.printf(Locale.US, "  %f", rho * 1000);
                 }
                 if (grid.withOccupancy()) {
-                    double occ = grid.getOccupancyResult(x, t);
+                    double occ = grid.get(OutputDataType.OCC_OUT, x, t);
                     fstr.printf(Locale.US, "  %f", occ);
                 }
                 fstr.printf(Locale.US, "%n");

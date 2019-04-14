@@ -47,18 +47,18 @@ public class LocationSeries {
             fstr.printf(Locale.US, "%n");
             double x = grid.xStart();
             while (x < grid.xEnd() - dx) {
-                double vASM = grid.getSpeedResult(x, time);
+                double vASM = grid.get(OutputDataType.V_OUT, x, time);
                 fstr.printf(Locale.US, "%f  %f  ", x / 1000., vASM * 3.6);
                 if (grid.withFlow()) {
-                    double flow = grid.getFlowResult(x, time);
+                    double flow = grid.get(OutputDataType.FLOW_OUT, x, time);
                     fstr.printf(Locale.US, "  %f", flow * 3600);
                 }
                 if (grid.withFlow()) {
-                    double rho = grid.getDensityResult(x, time);
+                    double rho = grid.get(OutputDataType.RHO_OUT, x, time);
                     fstr.printf(Locale.US, "  %f", rho * 1000);
                 }
                 if (grid.withOccupancy()) {
-                    double occ = grid.getOccupancyResult(x, time);
+                    double occ = grid.get(OutputDataType.OCC_OUT, x, time);
                     fstr.printf(Locale.US, "  %f", occ);
                 }
                 fstr.printf(Locale.US, "%n");

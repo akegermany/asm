@@ -75,7 +75,7 @@ public class TrajectoryIntegration {
                 System.err.println(" xEndGrid = " + grid.xEndGrid() / 1000. + " xStartGrid=" + grid.xStartGrid()
                         / 1000.);
             }
-            v = grid.getSpeedResult(x, t);
+            v = grid.get(OutputDataType.V_OUT, x, t);
             dx = v * config.getDt();
             t -= config.getDt();
             x += !grid.isReverseDirection() ? -dx : dx;
@@ -101,7 +101,7 @@ public class TrajectoryIntegration {
         while (!passedSection(x, grid.isReverseDirection())) {
             if (!grid.isDataAvailable(x, t))
                 break;
-            v = grid.getSpeedResult(x, t);
+            v = grid.get(OutputDataType.V_OUT, x, t);
             // / v = effectiveSpeed(v); // !!!! TODO !!! Noch keine Parameter, nicht quantiativ getestet !!!
             fstr.write(String.format(Locale.US, " %f  %f  %f  %s ", t, x, v, FormatUtils.getFormattedTime(t)));
             // integration

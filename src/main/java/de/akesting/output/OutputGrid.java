@@ -9,6 +9,7 @@ import java.util.Locale;
 import com.google.common.base.Preconditions;
 
 import com.google.common.base.Stopwatch;
+import de.akesting.autogen.Output;
 import de.akesting.autogen.SpatioTemporalContour;
 import de.akesting.data.DataRepository;
 import de.akesting.utils.FileUtils;
@@ -90,7 +91,6 @@ public final class OutputGrid {
             System.exit(-1);
         }
 
-
         // nDxOut --> Number of rows. nDtOut --> Number of columns.
         nDtOut = (int) ((tEnd - tStart) / dtOut) + 1;
         nDxOut = (int) ((xEnd - xStart) / dxOut) + 1;
@@ -105,7 +105,6 @@ public final class OutputGrid {
             for (int it = 0; it < nDtOut; it++) {
                 double t0 = time(it);
                 int index = getIndex(ix, it);
-               // System.out.println(index + ", (x,t)="+x0 + ","+t0);
                 outputDataPoints.set(index, new OutputDataPoint(x0, t0));
             }
         }
@@ -196,33 +195,8 @@ public final class OutputGrid {
         return ix + nDxOut * it;
     }
 
-    double getSpeedResult(double x, double t) {
-        return interpolate(V_OUT, x, t);
-    }
-
-    double getFlowResult(double x, double t) {
-        if (!withFlow) {
-            return 0;
-        }
-        return interpolate(FLOW_OUT, x, t);
-    }
-
-    double getDensityResult(double x, double t) {
-        if (!withRho) {
-            return 0;
-        }
-        return interpolate(RHO_OUT, x, t);
-    }
-
-    double getOccupancyResult(double x, double t) {
-        if (!withOcc) {
-            return 0;
-        }
-        return interpolate(OCC_OUT, x, t);
-    }
-
-    double getWeightResult(double x, double t) {
-        return interpolate(WEIGHT, x, t);
+    double get(OutputDataType type, double x, double t) {
+        return interpolate(type, x, t);
     }
 
     boolean isDataAvailable(double x, double t) {
