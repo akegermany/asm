@@ -81,6 +81,7 @@ public final class DataView {
     }
 
 
+    // TODO does not seem to have an effect on calc speed?!
     Iterable<Datapoint> getDataWithoutCopying(double x0, double t0) {
         if (!withVirtualGrid() || (nx == 1 && nt == 1)) {
             return dataRep.data();
