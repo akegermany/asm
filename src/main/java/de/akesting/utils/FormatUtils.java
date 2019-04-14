@@ -9,7 +9,7 @@ import org.joda.time.format.DateTimeFormatter;
 
 public final class FormatUtils {
 
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forPattern("YYYY-MM-dd'T'HH:mm:ss");
+    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forPattern("YYYY-MM-dd'T'HH:mm:ss");
     private static final double SECONDS_TO_MILLIS = 1000;
 
     private FormatUtils() {

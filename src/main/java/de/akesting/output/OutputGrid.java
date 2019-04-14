@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import Jama.Matrix;
 
@@ -14,8 +15,11 @@ import de.akesting.autogen.SpatioTemporalContour;
 import de.akesting.data.DataRepository;
 import de.akesting.utils.FileUtils;
 import de.akesting.utils.FormatUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static de.akesting.utils.FormatUtils.DATE_TIME_FORMATTER;
 
 public final class OutputGrid {
 
@@ -174,6 +178,9 @@ public final class OutputGrid {
                 dataRep.xMin() / 1000, dataRep.xMax() / 1000));
         fstr.write(String.format("# Time t  : [%.2f, %.2f]s = [%.3f, %.3f]h %n", dataRep.tMin(), dataRep.tMax(),
                 dataRep.tMin() / 3600, dataRep.tMax() / 3600));
+        DateTime startDateTime = new DateTime(Math.round(dataRep.tMin() * 1000), DateTimeZone.UTC);
+        DateTime endDateTime = new DateTime(Math.round(dataRep.tMax() * 1000), DateTimeZone.UTC);
+        fstr.write(String.format("# Time t  : [%s, %s] %n", startDateTime, endDateTime));
         fstr.write(String.format("# Speed v   : [%.3f, %.3f]m/s = [%.2f, %.2f]km/h %n", dataRep.vMin(), dataRep.vMax(),
                 dataRep.vMin() * 3.6, dataRep.vMax() * 3.6));
         fstr.write(String.format("# Flow q    : [%.5f, %.5f]/s  = [%.2f, %.2f]/h %n", dataRep.flowMin(),
@@ -182,7 +189,7 @@ public final class OutputGrid {
                 dataRep.rhoMax(), 1000 * dataRep.rhoMin(), 1000 * dataRep.rhoMax()));
         fstr.write(String.format("# Occupancy : [%.5f, %.5f] %n", dataRep.occMin(), dataRep.occMax()));
         fstr.write(String.format("# Units changed to SI system !!! Note that col 4 and 5 are for testing the ASM logic only%n"));
-        fstr.write(String.format("# x[m]  t[s]  v[m/s]  [v_free[m/s]]  [v_cong[m/s]]  weight[1]  time[hh:mm:ss]  norm[1]"));
+        fstr.write(String.format("# x[m]  t[s]  v[m/s]  [v_free[m/s]]  [v_cong[m/s]]  weight[1]  time[hh:mm:ss] norm[1]"));
         if (withFlow) {
             fstr.write(String.format("  flow[1 / s]"));
         }
@@ -198,9 +205,14 @@ public final class OutputGrid {
             double x0 = position(ix);
             for (int it = 0; it < ndt(); it++) {
                 double t0 = time(it);
-                fstr.write(String.format("%.2f%s%.1f%s%.2f%s%.2f%s%.2f%s%.5f%s%s%s%.5f", x0, SEPARATOR, t0, SEPARATOR, vOut.get(ix, it), SEPARATOR,
-                        vFree.get(ix, it), SEPARATOR, vCong.get(ix, it), SEPARATOR, weight.get(ix, it), SEPARATOR,
-                        FormatUtils.getFormattedTime(t0), SEPARATOR, normFree.get(ix, it)));
+
+                long millis = Math.round(t0 * 1000);
+                DateTime dateTime = new DateTime(millis, DateTimeZone.UTC);
+
+                // output of time as integer: gnuplot can interpret this as (epoch) seconds
+                fstr.write(String.format("%.2f%s%.0f%s%.2f%s%.2f%s%.2f%s%.5f%s%s%s%.5f", x0, SEPARATOR, t0, SEPARATOR, vOut.get(ix, it), SEPARATOR,
+                        vFree.get(ix, it), SEPARATOR, vCong.get(ix, it), SEPARATOR, weight.get(ix, it), SEPARATOR, DATE_TIME_FORMATTER.print(dateTime),
+                        SEPARATOR, normFree.get(ix, it)));
                 if (withFlow()) {
                     fstr.write(String.format("%s%.5f", SEPARATOR, flowOut.get(ix, it)));
                 }
