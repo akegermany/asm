@@ -7,3 +7,12 @@
 *.eps
 /target
 /not_public
+
+# IDEA
+*.iml
+**/*.iml
+.idea/
+**/.idea/
+out/
+
+runasm
